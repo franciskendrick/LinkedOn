@@ -1,0 +1,42 @@
+{
+    "users": {
+        "33901a37-f2c8-4be4-83aa-7af2aa48d305": {
+            "user_id": "33901a37-f2c8-4be4-83aa-7af2aa48d305",
+            "email": "francis@gmail.com",
+            "password_hash": "c0e21a8ff85153deac82fe7f09c0da1b3bd90ac0ae204e78d7148753b4363c03",
+            "name": "Francis Maddumba",
+            "age": 20,
+            "location": "Dasmarinas, Cavite",
+            "bio": "i love star wars",
+            "skills": [
+                "Programming in Python",
+                "Programming in Java",
+                "Programming in C++"
+            ],
+            "experiences": [],
+            "educations": [
+                {
+                    "school_name": "Ateneo University",
+                    "degree": "Undergraduate Degree in Computer Science",
+                    "year_started": "2018",
+                    "year_ended": "2022"
+                },
+                {
+                    "school_name": "La Salle Zobel",
+                    "degree": "SHS Degree in STEM",
+                    "year_started": "2016",
+                    "year_ended": "2018"
+                },
+                {
+                    "school_name": "Mapua University",
+                    "degree": "Masteral in Information Technology",
+                    "year_started": "2025",
+                    "year_ended": null
+                }
+            ],
+            "post_ids": []
+        }
+    },
+    "posts": {},
+    "connections": []
+}
