@@ -9,7 +9,9 @@ class Education:
         self.__year_started = year_started
         self.__year_ended = year_ended
 
-    # ── Getters ────────────────────────────────────────────────────────────────
+    # =========================================================================
+    # Getters 
+    # =========================================================================
 
     @property
     def school_name(self):
@@ -27,7 +29,9 @@ class Education:
     def year_ended(self):
         return self.__year_ended
 
-    # ── Setters ────────────────────────────────────────────────────────────────
+    # =========================================================================
+    # Setters 
+    # =========================================================================
 
     @school_name.setter
     def school_name(self, value):
@@ -45,7 +49,9 @@ class Education:
     def year_ended(self, value):
         self.__year_ended = value
 
-    # ── Display & Serialization ────────────────────────────────────────────────
+    # =========================================================================
+    # Display & Serialization
+    # =========================================================================
 
     def display(self):
         end = self.__year_ended if self.__year_ended else "Present"

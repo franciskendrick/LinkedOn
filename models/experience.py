@@ -1,5 +1,7 @@
 class Experience:
-    """Represents a single work experience entry on a user's profile."""
+    """
+    Represents a single work experience entry on a user's profile.
+    """
 
     def __init__(self, company, role, start_date, end_date=None, is_current=False):
         self.__company = company
@@ -8,7 +10,9 @@ class Experience:
         self.__end_date = end_date
         self.__is_current = is_current
 
-    # ── Getters ────────────────────────────────────────────────────────────────
+    # =========================================================================
+    # Getters 
+    # =========================================================================
 
     @property
     def company(self):
@@ -30,7 +34,9 @@ class Experience:
     def is_current(self):
         return self.__is_current
 
-    # ── Setters ────────────────────────────────────────────────────────────────
+    # =========================================================================
+    # Setters 
+    # =========================================================================
 
     @company.setter
     def company(self, value):
@@ -52,7 +58,9 @@ class Experience:
     def is_current(self, value):
         self.__is_current = value
 
-    # ── Display & Serialization ────────────────────────────────────────────────
+    # =========================================================================
+    # Display & Serialization
+    # =========================================================================
 
     def display(self):
         end = "Present" if self.__is_current else (self.__end_date or "N/A")

@@ -140,7 +140,10 @@ class User(Entity):
         if post_id in self._post_ids:
             self._post_ids.remove(post_id)
 
-    #  display() — overrides Entity abstract method
+    # =========================================================================
+    # Display & Serialization
+    # =========================================================================
+    
     def display(self):
         W = 52
         print("  " + "═" * W)
@@ -172,8 +175,6 @@ class User(Entity):
                 edu.display()
 
         print("  " + "═" * W)
-
-    # Serialization
 
     def to_dict(self):
         return {
