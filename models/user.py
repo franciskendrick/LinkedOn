@@ -2,13 +2,29 @@ import hashlib
 
 from models.entity import Entity
 
+# =========================================================================
+# USER CLASS
+# =========================================================================
+# Represents a LinkedOn user and their professional profile
 
 class User(Entity):
     """
     Represents a LinkedOn user and their professional profile.
     """
+    # =========================================================================
+    # CONSTRUCTOR
+    # =========================================================================
+    # Initializes the user object and profile information
+    # =========================================================================
 
     def __init__(self, user_id, email, password_hash, name="", age=None, location="", bio="", skills=None):
+
+        # -------------------------
+        # Private Attributes
+        # -------------------------
+        # Double underscore makes them inaccessible outside the class
+
+        
         self.__user_id = user_id
         self.__email = email
         self.__password_hash = password_hash
@@ -24,7 +40,7 @@ class User(Entity):
         self._post_ids = []   # stores only IDs; Post objects live in the app
 
     # Password Utilities 
-
+    # Handles password hashing and verification securely
     @staticmethod
     def hash_password(password):
         """One-way SHA-256 hash. Passwords are never stored in plain text."""
@@ -40,7 +56,9 @@ class User(Entity):
     # =========================================================================
     # Getters 
     # =========================================================================
-
+    # Provides controlled access to private/protected attributes
+    # =========================================================================
+    
     @property
     def user_id(self):
         return self.__user_id
@@ -84,6 +102,8 @@ class User(Entity):
     # =========================================================================
     # Setters 
     # =========================================================================
+    # Allows controlled modification of attributes
+    # =========================================================================
 
     @email.setter
     def email(self, value):
@@ -105,7 +125,11 @@ class User(Entity):
     def bio(self, value):
         self._bio = value
 
-    # Experience Methods 
+    # =========================================================================
+    # EXPERIENCE METHODS
+    # =========================================================================
+    # Adds and removes work experiences
+    # =========================================================================
 
     def add_experience(self, exp):
         self._experiences.append(exp)
@@ -113,15 +137,23 @@ class User(Entity):
     def remove_experience(self, index):
         del self._experiences[index]
 
-    # Eduction Methods
-
+    # =========================================================================
+    # EDUCATION METHODS
+    # =========================================================================
+    # Adds and removes educational background entries
+    # =========================================================================
+    
     def add_education(self, edu):
         self._educations.append(edu)
 
     def remove_education(self, index):
         del self._educations[index]
 
-    # Skill Methods 
+    # =========================================================================
+    # SKILL METHODS
+    # =========================================================================
+    # Manages user skills while avoiding duplicates
+    # ========================================================================= 
 
     def add_skill(self, skill):
         if skill not in self._skills:
@@ -131,7 +163,11 @@ class User(Entity):
         if skill in self._skills:
             self._skills.remove(skill)
 
-    # Post ID Methods 
+    # =========================================================================
+    # POST ID METHODS
+    # =========================================================================
+    # Stores references to user posts
+    # =========================================================================
 
     def add_post_id(self, post_id):
         self._post_ids.append(post_id)
@@ -141,12 +177,20 @@ class User(Entity):
             self._post_ids.remove(post_id)
 
     # =========================================================================
-    # Display & Serialization
+    # DISPLAY METHOD
+    # =========================================================================
+    # Polymorphism:
+    # This method overrides the abstract display() method from Entity
     # =========================================================================
     
     def display(self):
         W = 52
         print("  " + "═" * W)
+
+        # -------------------------
+        # User Basic Information
+        # -------------------------
+        
         name_display = self._name if self._name else "(No name set)"
         print(f"  👤  {name_display}")
         if self._bio:
@@ -158,15 +202,27 @@ class User(Entity):
             print(f"  📍 Location : {self._location}")
         print(f"  📧 Email    : {self.__email}")
 
+        # -------------------------
+        # Skills Section
+        # -------------------------
+
         if self._skills:
             print()
             print(f"  🛠  Skills  : {', '.join(self._skills)}")
+
+        # -------------------------
+        # Experience Section
+        # -------------------------
 
         if self._experiences:
             print()
             print("  Work Experience:")
             for exp in self._experiences:
                 exp.display()
+
+        # -------------------------
+        # Education Section
+        # -------------------------
 
         if self._educations:
             print()
@@ -175,6 +231,14 @@ class User(Entity):
                 edu.display()
 
         print("  " + "═" * W)
+
+
+    # =========================================================================
+    # SERIALIZATION
+    # =========================================================================
+    # Converts the object into a dictionary for saving to JSON/files
+    # =========================================================================
+
 
     def to_dict(self):
         return {
@@ -191,6 +255,15 @@ class User(Entity):
             "post_ids": self._post_ids,
         }
 
+
+    
+    # =========================================================================
+    # DESERIALIZATION
+    # =========================================================================
+    # Creates a User object from a dictionary
+    # =========================================================================
+
+    
     @classmethod
     def from_dict(cls, data):
         user = cls(
