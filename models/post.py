@@ -72,9 +72,6 @@ class Post(Entity):
         else:
             return TextPost.from_dict(data)
 
-# =============================================================================
-#  Text Post
-# =============================================================================
 
 class TextPost(Post):
     """A plain text status update. Inherits from Post."""
@@ -98,10 +95,6 @@ class TextPost(Post):
             timestamp=data.get("timestamp"),
         )
 
-
-# =============================================================================
-# Job Post
-# =============================================================================
 
 class JobPost(Post):
     """A job listing post. Inherits from Post and adds job-specific fields."""
@@ -156,10 +149,6 @@ class JobPost(Post):
             timestamp=data.get("timestamp"),
         )
 
-
-# =============================================================================
-# Achievement Post
-# =============================================================================
 
 class AchievementPost(Post):
     """A milestone or award post. Inherits from Post and adds an achievement title."""

@@ -7,11 +7,9 @@ from models.user import User
 from models.experience import Experience
 from models.education import Education
 from models.post import Post, TextPost, JobPost, AchievementPost
-# from models.connection import Connection
+from models.connection import Connection
 
-DB_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), "database.json"
-)
+DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "database.json")
 
 
 class LinkedOnApp:
@@ -21,9 +19,9 @@ class LinkedOnApp:
     """
 
     def __init__(self):
-        self.__users = {}         # { user_id: User }
-        self.__posts = {}         # { post_id: Post }
-        self.__connections = []   # [ Connection ]
+        self.__users = {}
+        self.__posts = {}
+        self.__connections = []
         self.__current_user = None
         self.__load_database()
 
@@ -45,6 +43,9 @@ class LinkedOnApp:
                 pid: Post.from_dict(p)
                 for pid, p in data.get("posts", {}).items()
             }
+            self.__connections = [
+                Connection.from_dict(c) for c in data.get("connections", [])
+            ]
         except (json.JSONDecodeError, KeyError):
             print("  ⚠️  Database file is corrupted. Starting fresh.")
 
@@ -103,6 +104,27 @@ class LinkedOnApp:
             if u.email == email:
                 return u
         return None
+
+    def __get_connection(self, uid1, uid2):
+        for c in self.__connections:
+            if (c.sender_id == uid1 and c.receiver_id == uid2) or \
+               (c.sender_id == uid2 and c.receiver_id == uid1):
+                return c
+        return None
+
+    def __pending_count(self):
+        return sum(
+            1 for c in self.__connections
+            if c.receiver_id == self.__current_user.user_id
+            and c.status == Connection.PENDING
+        )
+
+    def __connection_count(self):
+        return sum(
+            1 for c in self.__connections
+            if c.involves(self.__current_user.user_id)
+            and c.status == Connection.ACCEPTED
+        )
 
     # =========================================================================
     #  ENTRY POINT
@@ -208,13 +230,15 @@ class LinkedOnApp:
 
     def __dashboard(self):
         while True:
+            pending = self.__pending_count()
             display_name = self.__current_user.name or self.__current_user.email
             self.__header(f"Logged in as: {display_name}")
 
+            pending_tag = f"  ⚠️  {pending} pending" if pending > 0 else ""
             print("  [1]  View My Profile")
             print("  [2]  Edit Profile")
             print("  [3]  My Posts")
-            print("  [4]  Network")
+            print(f"  [4]  Network{pending_tag}")
             print("  [5]  Feed")
             print("  [6]  Log Out")
             print()
@@ -228,9 +252,9 @@ class LinkedOnApp:
             elif choice == "3":
                 self.__my_posts_menu()
             elif choice == "4":
-                pass  # !!!
+                self.__network_menu()
             elif choice == "5":
-                pass  # !!!
+                self.__view_feed()
             elif choice == "6":
                 self.__current_user = None
                 return
@@ -239,7 +263,7 @@ class LinkedOnApp:
                 self.__pause()
 
     # =========================================================================
-    #  VIEW MY PROFILE
+    # PROFILE
     # =========================================================================
 
     def __view_my_profile(self):
@@ -247,108 +271,9 @@ class LinkedOnApp:
         self.__current_user.display()
         print()
         post_count = len(self.__current_user.post_ids)
-        conn_count = 0  # !!!
+        conn_count = self.__connection_count()
         print(f"  📝 Posts: {post_count}     🤝 Connections: {conn_count}")
         self.__pause()
-
-    # =========================================================================
-    #  MY POSTS
-    # =========================================================================
-    
-    def __my_posts_menu(self):
-        while True:
-            self.__header("MY POSTS")
-            post_ids = self.__current_user.post_ids
-
-            if post_ids:
-                print(f"  You have {len(post_ids)} post(s):\n")
-                for i, pid in enumerate(post_ids, 1):
-                    post = self.__posts.get(pid)
-                    if post:
-                        print(f"  [{i}]  " + "─" * 40)
-                        post.display()
-                        print()
-            else:
-                print("  You haven't made any posts yet.\n")
-
-            print("  [A]  Create Post")
-            print("  [D]  Delete Post")
-            print("  [B]  Back")
-            print()
-            choice = input("  Choose an option: ").strip().upper()
-
-            if choice == "A":
-                self.__create_post()
-            elif choice == "D":
-                if not post_ids:
-                    print("\n  ⚠️   No posts to delete.")
-                    self.__pause()
-                else:
-                    self.__delete_post(post_ids)
-            elif choice == "B":
-                return
-            else:
-                print("\n  ⚠️   Invalid option.")
-                self.__pause()
-
-    def __create_post(self):
-        self.__header("CREATE A POST")
-        print("  What type of post would you like to create?\n")
-        print("  [1]  Text Post       — share a general update")
-        print("  [2]  Job Posting     — advertise an open position")
-        print("  [3]  Achievement     — celebrate a milestone")
-        print()
-
-        choice = input("  Choose post type: ").strip()
-        pid = str(uuid.uuid4())
-        uid = self.__current_user.user_id
-        uname = self.__current_user.name or self.__current_user.email
-
-        if choice == "1":
-            content = self.__prompt("What's on your mind?")
-            post = TextPost(pid, uid, uname, content)
-
-        elif choice == "2":
-            job_title = self.__prompt("Job Title")
-            company = self.__prompt("Company")
-            job_type = self.__prompt("Job Type  (e.g. Full-time / Part-time / Remote)")
-            content = self.__prompt("Job Description")
-            post = JobPost(pid, uid, uname, content, job_title, company, job_type)
-
-        elif choice == "3":
-            achievement_title = self.__prompt("Achievement Title")
-            content = self.__prompt("Tell us more about it")
-            post = AchievementPost(pid, uid, uname, content, achievement_title)
-
-        else:
-            print("\n  ⚠️   Invalid post type.")
-            self.__pause()
-            return
-
-        self.__posts[pid] = post
-        self.__current_user.add_post_id(pid)
-        self.__save_database()
-        print("\n  ✅  Post published!")
-        self.__pause()
-
-    def __delete_post(self, post_ids):
-        idx = input("  Enter post number to delete: ").strip()
-        if not (idx.isdigit() and 1 <= int(idx) <= len(post_ids)):
-            print("\n  ⚠️   Invalid number.")
-            self.__pause()
-            return
-
-        pid = post_ids[int(idx) - 1]
-        self.__current_user.remove_post_id(pid)
-        if pid in self.__posts:
-            del self.__posts[pid]
-        self.__save_database()
-        print("\n  ✅  Post deleted.")
-        self.__pause()
-
-    # =========================================================================
-    #  EDIT PROFILE MENU
-    # =========================================================================
 
     def __edit_profile_menu(self):
         while True:
@@ -379,7 +304,6 @@ class LinkedOnApp:
                 self.__pause()
 
     # Edit Basic Info 
-
     def __edit_basic_info(self):
         self.__header("EDIT BASIC INFO")
         u = self.__current_user
@@ -412,7 +336,6 @@ class LinkedOnApp:
         self.__pause()
 
     # Manage Skills 
-
     def __manage_skills(self):
         while True:
             self.__header("MANAGE SKILLS")
@@ -462,7 +385,6 @@ class LinkedOnApp:
                 self.__pause()
 
     # Manage Work Experience
-
     def __manage_experience(self):
         while True:
             self.__header("WORK EXPERIENCE")
@@ -516,12 +438,12 @@ class LinkedOnApp:
         self.__header("ADD WORK EXPERIENCE")
         company = self.__prompt("Company name")
         role = self.__prompt("Job title / Role")
-        start = self.__prompt("Start date  (e.g. Jan 2025)")
+        start = self.__prompt("Start date  (e.g. Jan 2022)")
 
         is_curr = input("  Is this your current job? (y/n): ").strip().lower() == "y"
         end = None
         if not is_curr:
-            end = self.__prompt("End date  (e.g. Dec 2026)")
+            end = self.__prompt("End date  (e.g. Dec 2023)")
 
         exp = Experience(company=company, role=role,
                          start_date=start, end_date=end, is_current=is_curr)
@@ -667,7 +589,6 @@ class LinkedOnApp:
         self.__pause()
 
     # Change Password 
-
     def __change_password(self):
         self.__header("CHANGE PASSWORD")
         old = self.__prompt("Current password")
@@ -690,4 +611,335 @@ class LinkedOnApp:
         self.__current_user.change_password(new_pass)
         self.__save_database()
         print("\n  ✅  Password changed successfully!")
+        self.__pause()
+
+    # =========================================================================
+    #  POSTS
+    # =========================================================================
+
+    def __my_posts_menu(self):
+        while True:
+            self.__header("MY POSTS")
+            post_ids = self.__current_user.post_ids
+
+            if post_ids:
+                print(f"  You have {len(post_ids)} post(s):\n")
+                for i, pid in enumerate(post_ids, 1):
+                    post = self.__posts.get(pid)
+                    if post:
+                        print(f"  [{i}]  " + "─" * 40)
+                        post.display()
+                        print()
+            else:
+                print("  You haven't made any posts yet.\n")
+
+            print("  [A]  Create Post")
+            print("  [D]  Delete Post")
+            print("  [B]  Back")
+            print()
+            choice = input("  Choose an option: ").strip().upper()
+
+            if choice == "A":
+                self.__create_post()
+            elif choice == "D":
+                if not post_ids:
+                    print("\n  ⚠️   No posts to delete.")
+                    self.__pause()
+                else:
+                    self.__delete_post(post_ids)
+            elif choice == "B":
+                return
+            else:
+                print("\n  ⚠️   Invalid option.")
+                self.__pause()
+
+    def __create_post(self):
+        self.__header("CREATE A POST")
+        print("  What type of post would you like to create?\n")
+        print("  [1]  Text Post       — share a general update")
+        print("  [2]  Job Posting     — advertise an open position")
+        print("  [3]  Achievement     — celebrate a milestone")
+        print()
+
+        choice = input("  Choose post type: ").strip()
+        pid = str(uuid.uuid4())
+        uid = self.__current_user.user_id
+        uname = self.__current_user.name or self.__current_user.email
+
+        if choice == "1":
+            content = self.__prompt("What's on your mind?")
+            post = TextPost(pid, uid, uname, content)
+
+        elif choice == "2":
+            job_title = self.__prompt("Job Title")
+            company = self.__prompt("Company")
+            job_type = self.__prompt("Job Type  (e.g. Full-time / Part-time / Remote)")
+            content = self.__prompt("Job Description")
+            post = JobPost(pid, uid, uname, content, job_title, company, job_type)
+
+        elif choice == "3":
+            achievement_title = self.__prompt("Achievement Title")
+            content = self.__prompt("Tell us more about it")
+            post = AchievementPost(pid, uid, uname, content, achievement_title)
+
+        else:
+            print("\n  ⚠️   Invalid post type.")
+            self.__pause()
+            return
+
+        self.__posts[pid] = post
+        self.__current_user.add_post_id(pid)
+        self.__save_database()
+        print("\n  ✅  Post published!")
+        self.__pause()
+
+    def __delete_post(self, post_ids):
+        idx = input("  Enter post number to delete: ").strip()
+        if not (idx.isdigit() and 1 <= int(idx) <= len(post_ids)):
+            print("\n  ⚠️   Invalid number.")
+            self.__pause()
+            return
+
+        pid = post_ids[int(idx) - 1]
+        self.__current_user.remove_post_id(pid)
+        if pid in self.__posts:
+            del self.__posts[pid]
+        self.__save_database()
+        print("\n  ✅  Post deleted.")
+        self.__pause()
+
+    # =========================================================================
+    #  NETWORK
+    # =========================================================================
+
+    def __network_menu(self):
+        while True:
+            pending = self.__pending_count()
+            self.__header("NETWORK")
+            print("  [1]  Search for a User")
+            print("  [2]  My Connections")
+            print(f"  [3]  Connection Requests  ({pending} pending)")
+            print("  [4]  Back")
+            print()
+            choice = input("  Choose an option: ").strip()
+
+            if choice == "1":
+                self.__search_users()
+            elif choice == "2":
+                self.__view_connections()
+            elif choice == "3":
+                self.__manage_requests()
+            elif choice == "4":
+                return
+            else:
+                print("\n  ⚠️   Invalid option.")
+                self.__pause()
+
+    def __search_users(self):
+        self.__header("SEARCH USERS")
+        query = self.__prompt("Search by name or school").lower()
+
+        results = [
+            u for u in self.__users.values()
+            if u.user_id != self.__current_user.user_id
+            and (
+                query in (u.name or "").lower()
+                or any(query in (e.school_name or "").lower() for e in u.educations)
+            )
+        ]
+
+        if not results:
+            print("\n  No users found matching that query.")
+            self.__pause()
+            return
+
+        print(f"\n  Found {len(results)} user(s):\n")
+        for i, u in enumerate(results, 1):
+            conn = self.__get_connection(self.__current_user.user_id, u.user_id)
+            tag = f"  [{conn.status}]" if conn else ""
+            bio_snippet = f"  — {u.bio}" if u.bio else ""
+            print(f"  [{i}]  {u.name or u.email}{bio_snippet}{tag}")
+
+        print()
+        idx = input("  Enter number to view profile (0 to cancel): ").strip()
+        if idx == "0":
+            return
+        if idx.isdigit() and 1 <= int(idx) <= len(results):
+            self.__view_other_profile(results[int(idx) - 1])
+        else:
+            print("\n  ⚠️   Invalid number.")
+            self.__pause()
+
+    def __view_other_profile(self, user):
+        self.__header(f"PROFILE: {user.name or user.email}")
+        user.display()
+
+        # Show up to 3 recent posts
+        if user.post_ids:
+            recent = user.post_ids[-3:]
+            print(f"\n  Recent Posts ({len(user.post_ids)} total):\n")
+            for pid in recent:
+                post = self.__posts.get(pid)
+                if post:
+                    print("  " + "─" * 46)
+                    post.display()
+            print("  " + "─" * 46)
+
+        # Connection action
+        my_id = self.__current_user.user_id
+        conn = self.__get_connection(my_id, user.user_id)
+        print()
+
+        if conn is None:
+            send = input("  Send connection request? (y/n): ").strip().lower()
+            if send == "y":
+                self.__connections.append(Connection(my_id, user.user_id))
+                self.__save_database()
+                print("  ✅  Connection request sent!")
+
+        elif conn.status == Connection.PENDING:
+            # Maybe it's ours, maybe it's theirs
+            if conn.sender_id == my_id:
+                print("  ⏳  Your connection request is still pending.")
+            else:
+                print("  📨  This user has sent you a connection request.")
+                print("  Go to Network > Connection Requests to respond.")
+
+        elif conn.status == Connection.ACCEPTED:
+            print("  🤝  You are already connected.")
+            remove = input("  Remove this connection? (y/n): ").strip().lower()
+            if remove == "y":
+                self.__connections.remove(conn)
+                self.__save_database()
+                print("  ✅  Connection removed.")
+
+        elif conn.status == Connection.DECLINED:
+            print("  ❌  This connection request was previously declined.")
+
+        self.__pause()
+
+    def __view_connections(self):
+        self.__header("MY CONNECTIONS")
+
+        connected_users = []
+        for c in self.__connections:
+            if c.involves(self.__current_user.user_id) and c.status == Connection.ACCEPTED:
+                other_id = c.get_other(self.__current_user.user_id)
+                other = self.__users.get(other_id)
+                if other:
+                    connected_users.append(other)
+
+        if not connected_users:
+            print("  You have no connections yet.")
+            print("  Use Search to find and connect with other users.")
+            self.__pause()
+            return
+
+        print(f"  You have {len(connected_users)} connection(s):\n")
+        for i, u in enumerate(connected_users, 1):
+            bio = u.bio if u.bio else "No headline"
+            print(f"  [{i}]  {u.name or u.email}  —  {bio}")
+
+        print()
+        idx = input("  Enter number to view profile (0 to go back): ").strip()
+        if idx == "0":
+            return
+        if idx.isdigit() and 1 <= int(idx) <= len(connected_users):
+            self.__view_other_profile(connected_users[int(idx) - 1])
+        else:
+            print("\n  ⚠️   Invalid number.")
+            self.__pause()
+
+    def __manage_requests(self):
+        self.__header("CONNECTION REQUESTS")
+
+        pending = [
+            c for c in self.__connections
+            if c.receiver_id == self.__current_user.user_id
+            and c.status == Connection.PENDING
+        ]
+
+        if not pending:
+            print("  No pending connection requests.")
+            self.__pause()
+            return
+
+        print(f"  {len(pending)} pending request(s):\n")
+        senders = []
+        for i, c in enumerate(pending, 1):
+            sender = self.__users.get(c.sender_id)
+            if sender:
+                senders.append((c, sender))
+                bio = sender.bio if sender.bio else "No headline"
+                print(f"  [{i}]  {sender.name or sender.email}  —  {bio}")
+
+        print()
+        idx = input("  Enter number to respond (0 to go back): ").strip()
+        if idx == "0":
+            return
+        if not (idx.isdigit() and 1 <= int(idx) <= len(senders)):
+            print("\n  ⚠️   Invalid number.")
+            self.__pause()
+            return
+
+        conn, sender = senders[int(idx) - 1]
+        print()
+        print(f"  Request from: {sender.name or sender.email}")
+        print()
+        print("  [1]  Accept")
+        print("  [2]  Decline")
+        print("  [3]  Decide later")
+        print()
+        action = input("  Choose: ").strip()
+
+        if action == "1":
+            conn.accept()
+            self.__save_database()
+            print(f"\n  ✅  You are now connected with {sender.name or sender.email}!")
+        elif action == "2":
+            conn.decline()
+            self.__save_database()
+            print("\n  Request declined.")
+
+        self.__pause()
+
+    # =========================================================================
+    #  FEED
+    # =========================================================================
+
+    def __view_feed(self):
+        self.__header("FEED")
+
+        # Gather all connected user IDs, plus the current user
+        connected_ids = [self.__current_user.user_id]
+        for c in self.__connections:
+            if c.involves(self.__current_user.user_id) and c.status == Connection.ACCEPTED:
+                connected_ids.append(c.get_other(self.__current_user.user_id))
+
+        # Collect all posts from those users
+        all_posts = []
+        for uid in connected_ids:
+            user = self.__users.get(uid)
+            if user:
+                for pid in user.post_ids:
+                    post = self.__posts.get(pid)
+                    if post:
+                        all_posts.append(post)
+
+        if not all_posts:
+            print("  Your feed is empty.")
+            print("  Connect with others to see their posts here!")
+            self.__pause()
+            return
+
+        # Sort newest first
+        all_posts.sort(key=lambda p: p.timestamp, reverse=True)
+
+        print(f"  {len(all_posts)} post(s) in your feed:\n")
+        for post in all_posts:
+            print("  " + "─" * 46)
+            post.display()
+            print()
+        print("  " + "─" * 46)
+
         self.__pause()

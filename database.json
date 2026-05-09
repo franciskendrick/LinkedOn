@@ -18,6 +18,19 @@
             "post_ids": [
                 "e80b3b81-a75c-46f2-9530-3cf504647a5a"
             ]
+        },
+        "0a416da8-220e-4a61-9556-453bf350e8a9": {
+            "user_id": "0a416da8-220e-4a61-9556-453bf350e8a9",
+            "email": "chris@gmail.com",
+            "password_hash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+            "name": "",
+            "age": null,
+            "location": "",
+            "bio": "",
+            "skills": [],
+            "experiences": [],
+            "educations": [],
+            "post_ids": []
         }
     },
     "posts": {
@@ -33,5 +46,11 @@
             "job_type": "fulltime"
         }
     },
-    "connections": []
+    "connections": [
+        {
+            "sender_id": "0a416da8-220e-4a61-9556-453bf350e8a9",
+            "receiver_id": "33901a37-f2c8-4be4-83aa-7af2aa48d305",
+            "status": "accepted"
+        }
+    ]
 }
