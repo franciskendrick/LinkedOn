@@ -254,51 +254,37 @@ class LinkedOnApp:
     # =========================================================================
     #  MY POSTS
     # =========================================================================
-
+    
     def __my_posts_menu(self):
         while True:
             self.__header("MY POSTS")
             post_ids = self.__current_user.post_ids
-            my_posts = [self.__posts[pid] for pid in post_ids if pid in self.__posts]
 
-            if my_posts:
-                print(f"  You have {len(my_posts)} post(s):\n")
-                print(f"  {'─'*48}")
-                for i, post in enumerate(my_posts, 1):
-                    print(f"  [{i}]  ", end="")
-                    if post.post_type == "text":
-                        print(f"📝  TEXT  —  {post.content[:45]}{'...' if len(post.content) > 45 else ''}")
-                    elif post.post_type == "job":
-                        print(f"👔  JOB   —  {post.job_title} @ {post.company}")
-                    elif post.post_type == "achievement":
-                        print(f"🏆  ACHIEVEMENT  —  {post.achievement_title}")
-                    print(f"      ⏳  {post.timestamp}")
-                print(f"  {'─'*48}")
+            if post_ids:
+                print(f"  You have {len(post_ids)} post(s):\n")
+                for i, pid in enumerate(post_ids, 1):
+                    post = self.__posts.get(pid)
+                    if post:
+                        print(f"  [{i}]  " + "─" * 40)
+                        post.display()
+                        print()
             else:
-                print("  You haven't posted anything yet.\n")
+                print("  You haven't made any posts yet.\n")
 
-            print()
-            print("  [C]  Create Post")
-            print("  [V]  View a Post")
-            print("  [D]  Delete a Post")
+            print("  [A]  Create Post")
+            print("  [D]  Delete Post")
             print("  [B]  Back")
             print()
             choice = input("  Choose an option: ").strip().upper()
 
-            if choice == "C":
+            if choice == "A":
                 self.__create_post()
-            elif choice == "V":
-                if not my_posts:
-                    print("\n  ⚠️   No posts to view.")
-                    self.__pause()
-                else:
-                    self.__view_post_detail(my_posts)
             elif choice == "D":
-                if not my_posts:
+                if not post_ids:
                     print("\n  ⚠️   No posts to delete.")
                     self.__pause()
                 else:
-                    self.__delete_post(my_posts)
+                    self.__delete_post(post_ids)
             elif choice == "B":
                 return
             else:
@@ -308,89 +294,55 @@ class LinkedOnApp:
     def __create_post(self):
         self.__header("CREATE A POST")
         print("  What type of post would you like to create?\n")
-        print("  [M]    My Day — Share your thoughts or updates")
-        print("  [J]    Job Post — Seek a Job you jobless")
-        print("  [A]    Achievement Post — Achievements, certifications, awards, and more")
-        print("  [B]    Back")
+        print("  [1]  Text Post       — share a general update")
+        print("  [2]  Job Posting     — advertise an open position")
+        print("  [3]  Achievement     — celebrate a milestone")
         print()
-        choice = input("  Choose an option: ").strip().upper()
 
-        post_id = str(uuid.uuid4())
-        author_id = self.__current_user.user_id
+        choice = input("  Choose post type: ").strip()
+        pid = str(uuid.uuid4())
+        uid = self.__current_user.user_id
+        uname = self.__current_user.name or self.__current_user.email
 
-        if choice == "M":
-            self.__header("NEW TEXT  POST")
+        if choice == "1":
             content = self.__prompt("What's on your mind?")
-            post = TextPost(post_id=post_id, author_id=author_id, content=content)
+            post = TextPost(pid, uid, uname, content)
 
-        elif choice == "J":
-            self.__header("NEW JOB POST")
-            job_title = self.__prompt("Job title")
+        elif choice == "2":
+            job_title = self.__prompt("Job Title")
             company = self.__prompt("Company")
-            content = self.__prompt("Details / Description")
-            post = JobPost(
-                post_id=post_id, author_id=author_id,
-                content=content, job_title=job_title, company=company
-            )
+            job_type = self.__prompt("Job Type  (e.g. Full-time / Part-time / Remote)")
+            content = self.__prompt("Job Description")
+            post = JobPost(pid, uid, uname, content, job_title, company, job_type)
 
-        elif choice == "A":
-            self.__header("NEW ACHIEVEMENT POST")
-            achievement_title = self.__prompt("Achievement title  (e.g. 'Passed AWS Certification')")
+        elif choice == "3":
+            achievement_title = self.__prompt("Achievement Title")
             content = self.__prompt("Tell us more about it")
-            post = AchievementPost(
-                post_id=post_id, author_id=author_id,
-                content=content, achievement_title=achievement_title
-            )
-
-        elif choice == "B":
-            return
+            post = AchievementPost(pid, uid, uname, content, achievement_title)
 
         else:
-            print("\n  ⚠️   Invalid option.")
+            print("\n  ⚠️   Invalid post type.")
             self.__pause()
             return
 
-        # Save the post
-        self.__posts[post_id] = post
-        self.__current_user.add_post_id(post_id)
+        self.__posts[pid] = post
+        self.__current_user.add_post_id(pid)
         self.__save_database()
-
-        print()
-        print("✓  Post published successfully!")
+        print("\n  ✅  Post published!")
         self.__pause()
 
-    def __view_post_detail(self, my_posts):
-        idx = input("Enter post number to view: ").strip()
-        if not (idx.isdigit() and 1 <= int(idx) <= len(my_posts)):
+    def __delete_post(self, post_ids):
+        idx = input("  Enter post number to delete: ").strip()
+        if not (idx.isdigit() and 1 <= int(idx) <= len(post_ids)):
             print("\n  ⚠️   Invalid number.")
             self.__pause()
             return
 
-        post = my_posts[int(idx) - 1]
-        self.__header("POST DETAIL")
-        print(f"  {'─'*48}")
-        post.display()
-        print(f"  {'─'*48}")
-        self.__pause()
-
-    def __delete_post(self, my_posts):
-        idx = input("Enter post number to delete: ").strip()
-        if not (idx.isdigit() and 1 <= int(idx) <= len(my_posts)):
-            print("\n  ⚠️   Invalid number.")
-            self.__pause()
-            return
-
-        post = my_posts[int(idx) - 1]
-        confirm = input(f"\n  ⚠️   Delete this post? (y/n): ").strip().lower()
-        if confirm != "y":
-            print("\n  Cancelled.")
-            self.__pause()
-            return
-
-        self.__current_user.remove_post_id(post.post_id)
-        del self.__posts[post.post_id]
+        pid = post_ids[int(idx) - 1]
+        self.__current_user.remove_post_id(pid)
+        if pid in self.__posts:
+            del self.__posts[pid]
         self.__save_database()
-
         print("\n  ✅  Post deleted.")
         self.__pause()
 

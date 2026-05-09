@@ -1,4 +1,4 @@
-import uuid
+from abc import abstractmethod
 from datetime import datetime
 
 from models.entity import Entity
@@ -6,15 +6,15 @@ from models.entity import Entity
 
 class Post(Entity):
     """
-    Base class for all LinkedOn post types.
+    Abstract base class for all post types.
     """
 
-    def __init__(self, post_id, author_id, content, post_type, timestamp=None):
-        self._post_id = post_id
-        self._author_id = author_id
-        self._content = content
-        self._post_type = post_type
-        self._timestamp = timestamp or datetime.now().strftime("%b %d, %Y %I:%M %p")
+    def __init__(self, post_id, author_id, author_name, content, timestamp=None):
+        self.__post_id = post_id
+        self.__author_id = author_id
+        self.__author_name = author_name
+        self.__content = content
+        self.__timestamp = timestamp or datetime.now().strftime("%Y-%m-%d %H:%M")
 
     # =========================================================================
     # Getters
@@ -22,46 +22,49 @@ class Post(Entity):
 
     @property
     def post_id(self):
-        return self._post_id
+        return self.__post_id
 
     @property
     def author_id(self):
-        return self._author_id
+        return self.__author_id
+
+    @property
+    def author_name(self):
+        return self.__author_name
 
     @property
     def content(self):
-        return self._content
-
-    @property
-    def post_type(self):
-        return self._post_type
+        return self.__content
 
     @property
     def timestamp(self):
-        return self._timestamp
+        return self.__timestamp
+
+    @content.setter
+    def content(self, value):
+        self.__content = value
 
     # =========================================================================
     # Display & Serialization
     # =========================================================================
 
+    @abstractmethod
     def display(self):
-        print(f"📄  [{self._post_type.upper()} POST]")
-        print(f"{self._content}")
-        print(f"⏳  {self._timestamp}")
+        pass
 
     def to_dict(self):
         return {
-            "post_id": self._post_id,
-            "author_id": self._author_id,
-            "content": self._content,
-            "post_type": self._post_type,
-            "timestamp": self._timestamp,
+            "post_id": self.__post_id,
+            "author_id": self.__author_id,
+            "author_name": self.__author_name,
+            "content": self.__content,
+            "timestamp": self.__timestamp,
         }
 
     @classmethod
     def from_dict(cls, data):
-        """Factory — routes to the correct subclass based on post_type."""
-        post_type = data.get("post_type", "text")
+        """Factory method — delegates to the correct subclass based on type."""
+        post_type = data.get("type", "text")
         if post_type == "job":
             return JobPost.from_dict(data)
         elif post_type == "achievement":
@@ -69,30 +72,28 @@ class Post(Entity):
         else:
             return TextPost.from_dict(data)
 
-
 # =============================================================================
 #  Text Post
 # =============================================================================
 
 class TextPost(Post):
-    """A plain text post — share thoughts, updates, or anything on your mind."""
-
-    def __init__(self, post_id, author_id, content, timestamp=None):
-        super().__init__(post_id, author_id, content, "text", timestamp)
+    """A plain text status update. Inherits from Post."""
 
     def display(self):
-        print(f"TEXT POST")
-        print(f"Content: {self._content}")
-        print(f"⏳  {self._timestamp}")
+        print(f"  ✏️   {self.author_name}  ·  {self.timestamp}")
+        print(f"  {self.content}")
 
     def to_dict(self):
-        return super().to_dict()
+        d = super().to_dict()
+        d["type"] = "text"
+        return d
 
     @classmethod
     def from_dict(cls, data):
         return cls(
             post_id=data["post_id"],
             author_id=data["author_id"],
+            author_name=data["author_name"],
             content=data["content"],
             timestamp=data.get("timestamp"),
         )
@@ -103,12 +104,14 @@ class TextPost(Post):
 # =============================================================================
 
 class JobPost(Post):
-    """A job-related post — advertise an opening or signal you're looking."""
+    """A job listing post. Inherits from Post and adds job-specific fields."""
 
-    def __init__(self, post_id, author_id, content, job_title, company, timestamp=None):
-        super().__init__(post_id, author_id, content, "job", timestamp)
+    def __init__(self, post_id, author_id, author_name, content,
+                 job_title, company, job_type, timestamp=None):
+        super().__init__(post_id, author_id, author_name, content, timestamp)
         self.__job_title = job_title
         self.__company = company
+        self.__job_type = job_type
 
     # =========================================================================
     # Getters
@@ -127,16 +130,17 @@ class JobPost(Post):
     # =========================================================================
 
     def display(self):
-        print(f"JOB POST")
-        print(f"Job Title: {self.__job_title}")
-        print(f"Company: {self.__company}")
-        print(f"Content: {self._content}")
-        print(f"⏳  {self._timestamp}")
+        print(f"  📋  [JOB POSTING]  {self.author_name}  ·  {self.timestamp}")
+        print(f"  Position : {self.__job_title}")
+        print(f"  Company  : {self.__company}  ({self.__job_type})")
+        print(f"  {self.content}")
 
     def to_dict(self):
         d = super().to_dict()
+        d["type"] = "job"
         d["job_title"] = self.__job_title
         d["company"] = self.__company
+        d["job_type"] = self.__job_type
         return d
 
     @classmethod
@@ -144,9 +148,11 @@ class JobPost(Post):
         return cls(
             post_id=data["post_id"],
             author_id=data["author_id"],
+            author_name=data["author_name"],
             content=data["content"],
-            job_title=data.get("job_title", ""),
-            company=data.get("company", ""),
+            job_title=data["job_title"],
+            company=data["company"],
+            job_type=data["job_type"],
             timestamp=data.get("timestamp"),
         )
 
@@ -156,10 +162,11 @@ class JobPost(Post):
 # =============================================================================
 
 class AchievementPost(Post):
-    """An achievement post — celebrate a win, certification, or milestone."""
+    """A milestone or award post. Inherits from Post and adds an achievement title."""
 
-    def __init__(self, post_id, author_id, content, achievement_title, timestamp=None):
-        super().__init__(post_id, author_id, content, "achievement", timestamp)
+    def __init__(self, post_id, author_id, author_name, content,
+                 achievement_title, timestamp=None):
+        super().__init__(post_id, author_id, author_name, content, timestamp)
         self.__achievement_title = achievement_title
 
     # =========================================================================
@@ -175,13 +182,13 @@ class AchievementPost(Post):
     # =========================================================================
 
     def display(self):
-        print(f"ACHIEVEMENT")
-        print(f"Title: {self.__achievement_title}")
-        print(f"Content: {self._content}")
-        print(f"⏳  {self._timestamp}")
+        print(f"  🏆  [ACHIEVEMENT]  {self.author_name}  ·  {self.timestamp}")
+        print(f"  {self.__achievement_title}")
+        print(f"  {self.content}")
 
     def to_dict(self):
         d = super().to_dict()
+        d["type"] = "achievement"
         d["achievement_title"] = self.__achievement_title
         return d
 
@@ -190,7 +197,8 @@ class AchievementPost(Post):
         return cls(
             post_id=data["post_id"],
             author_id=data["author_id"],
+            author_name=data["author_name"],
             content=data["content"],
-            achievement_title=data.get("achievement_title", ""),
+            achievement_title=data["achievement_title"],
             timestamp=data.get("timestamp"),
         )
