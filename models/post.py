@@ -99,8 +99,7 @@ class TextPost(Post):
 class JobPost(Post):
     """A job listing post. Inherits from Post and adds job-specific fields."""
 
-    def __init__(self, post_id, author_id, author_name, content,
-                 job_title, company, job_type, timestamp=None):
+    def __init__(self, post_id, author_id, author_name, content, job_title, company, job_type, timestamp=None):
         super().__init__(post_id, author_id, author_name, content, timestamp)
         self.__job_title = job_title
         self.__company = company
@@ -153,8 +152,7 @@ class JobPost(Post):
 class AchievementPost(Post):
     """A milestone or award post. Inherits from Post and adds an achievement title."""
 
-    def __init__(self, post_id, author_id, author_name, content,
-                 achievement_title, timestamp=None):
+    def __init__(self, post_id, author_id, author_name, content, achievement_title, timestamp=None):
         super().__init__(post_id, author_id, author_name, content, timestamp)
         self.__achievement_title = achievement_title
 

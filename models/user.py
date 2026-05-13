@@ -23,7 +23,7 @@ class User(Entity):
         self._educations = []
         self._post_ids = []   # stores only IDs; Post objects live in the app
 
-    # Password Utilities 
+    # Password Utilities
 
     @staticmethod
     def hash_password(password):
@@ -38,7 +38,7 @@ class User(Entity):
         self.__password_hash = User.hash_password(new_password)
 
     # =========================================================================
-    # Getters 
+    # Getters
     # =========================================================================
 
     @property
@@ -82,7 +82,7 @@ class User(Entity):
         return self._post_ids
 
     # =========================================================================
-    # Setters 
+    # Setters
     # =========================================================================
 
     @email.setter
@@ -105,7 +105,7 @@ class User(Entity):
     def bio(self, value):
         self._bio = value
 
-    # Experience Methods 
+    # Experience Methods
 
     def add_experience(self, exp):
         self._experiences.append(exp)
@@ -121,7 +121,7 @@ class User(Entity):
     def remove_education(self, index):
         del self._educations[index]
 
-    # Skill Methods 
+    # Skill Methods
 
     def add_skill(self, skill):
         if skill not in self._skills:
@@ -131,7 +131,7 @@ class User(Entity):
         if skill in self._skills:
             self._skills.remove(skill)
 
-    # Post ID Methods 
+    # Post ID Methods
 
     def add_post_id(self, post_id):
         self._post_ids.append(post_id)

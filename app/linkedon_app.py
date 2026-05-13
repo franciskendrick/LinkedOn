@@ -32,6 +32,7 @@ class LinkedOnApp:
     def __load_database(self):
         if not os.path.exists(DB_PATH):
             return
+        # If the file exists but is empty or corrupted, start fresh.
         try:
             with open(DB_PATH, "r") as f:
                 data = json.load(f)
@@ -63,13 +64,15 @@ class LinkedOnApp:
     # =========================================================================
 
     def __clear(self):
-        os.system("cls" if os.name == "nt" else "clear")
+        os.system("cls" if os.name == "nt" else "clear")  # clear the screen
 
     def __pause(self):
         input("\n  Press Enter to continue...")
 
     def __header(self, subtitle=""):
         self.__clear()
+
+        # ASCII art header (https://patorjk.com/software/taag/#p=display&f=ANSI+Shadow&t=LINKEDON&x=none&v=1&h=1&w=80&we=false)
         print()
         print("  ██╗     ██╗███╗   ██╗██╗  ██╗███████╗██████╗  ██████╗ ███╗   ██╗")
         print("  ██║     ██║████╗  ██║██║ ██╔╝██╔════╝██╔══██╗██╔═══██╗████╗  ██║")
@@ -77,6 +80,8 @@ class LinkedOnApp:
         print("  ██║     ██║██║╚██╗██║██╔═██╗ ██╔══╝  ██║  ██║██║   ██║██║╚██╗██║")
         print("  ███████╗██║██║ ╚████║██║  ██╗███████╗██████╔╝╚██████╔╝██║ ╚████║")
         print("  ╚══════╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝╚═════╝  ╚═════╝ ╚═╝  ╚═══╝")
+
+        # Subtitle and separator
         if subtitle:
             print()
             print(f"  {'─'*48}")
@@ -85,7 +90,7 @@ class LinkedOnApp:
         print()
 
     def __prompt(self, label, allow_empty=False):
-        """Get non-empty input from the user."""
+        # Get non-empty input from the user.
         while True:
             val = input(f"  {label}: ").strip()
             if val or allow_empty:
@@ -107,8 +112,7 @@ class LinkedOnApp:
 
     def __get_connection(self, uid1, uid2):
         for c in self.__connections:
-            if (c.sender_id == uid1 and c.receiver_id == uid2) or \
-               (c.sender_id == uid2 and c.receiver_id == uid1):
+            if (c.sender_id == uid1 and c.receiver_id == uid2) or (c.sender_id == uid2 and c.receiver_id == uid1):
                 return c
         return None
 
@@ -140,14 +144,17 @@ class LinkedOnApp:
 
     def __main_menu(self):
         self.__header()
+
+        # Display all options
         print("  Your Professional Network Starts Here.")
         print()
         print("  [1]  Register")
         print("  [2]  Log In")
         print("  [3]  Exit")
         print()
-        choice = input("  Choose an option: ").strip()
 
+        # Ask user what they want to do
+        choice = input("  Choose an option: ").strip()
         if choice == "1":
             self.__register()
         elif choice == "2":
@@ -166,6 +173,7 @@ class LinkedOnApp:
     # =========================================================================
 
     def __register(self):
+        # Header
         self.__header("CREATE AN ACCOUNT")
 
         # Email
@@ -191,6 +199,7 @@ class LinkedOnApp:
                 continue
             break
 
+        # Encrypt password and create user
         user_id = str(uuid.uuid4())
         new_user = User(
             user_id=user_id,
@@ -200,16 +209,19 @@ class LinkedOnApp:
         self.__users[user_id] = new_user
         self.__save_database()
 
+        # Confirmation message
         print()
         print("  ✅  Account created successfully!")
         print("  Tip: Log in and complete your profile to get started.")
         self.__pause()
 
     def __login(self):
+        # Header
         self.__header("LOG IN")
         email = self.__prompt("Email")
         password = self.__prompt("Password")
 
+        # Find email
         user = self.__find_by_email(email)
         if user is None or not user.verify_password(password):
             print()
@@ -217,11 +229,14 @@ class LinkedOnApp:
             self.__pause()
             return
 
+        # Confirmation message
         self.__current_user = user
         display_name = user.name if user.name else user.email
         print()
         print(f"  ✅  Welcome back, {display_name}!")
         self.__pause()
+
+        # Back to dashboard
         self.__dashboard()
 
     # =========================================================================
@@ -230,10 +245,12 @@ class LinkedOnApp:
 
     def __dashboard(self):
         while True:
+            # Header
             pending = self.__pending_count()
             display_name = self.__current_user.name or self.__current_user.email
             self.__header(f"Logged in as: {display_name}")
 
+            # Display all options
             pending_tag = f"  ⚠️  {pending} pending" if pending > 0 else ""
             print("  [1]  View My Profile")
             print("  [2]  Edit Profile")
@@ -243,8 +260,8 @@ class LinkedOnApp:
             print("  [6]  Log Out")
             print()
 
+            # Ask user to what they want to do
             choice = input("  Choose an option: ").strip()
-
             if choice == "1":
                 self.__view_my_profile()
             elif choice == "2":
@@ -258,7 +275,7 @@ class LinkedOnApp:
             elif choice == "6":
                 self.__current_user = None
                 return
-            else:
+            else:  # error validation
                 print("\n  ⚠️   Invalid option.")
                 self.__pause()
 
@@ -267,9 +284,12 @@ class LinkedOnApp:
     # =========================================================================
 
     def __view_my_profile(self):
+        # Header
         self.__header("MY PROFILE")
         self.__current_user.display()
         print()
+
+        # Display post and connections count
         post_count = len(self.__current_user.post_ids)
         conn_count = self.__connection_count()
         print(f"  📝 Posts: {post_count}     🤝 Connections: {conn_count}")
@@ -277,7 +297,10 @@ class LinkedOnApp:
 
     def __edit_profile_menu(self):
         while True:
+            # Header
             self.__header("EDIT PROFILE")
+
+            # Display all options
             print("  [1]  Edit Basic Info  (name, age, location, bio)")
             print("  [2]  Manage Skills")
             print("  [3]  Manage Work Experience")
@@ -285,8 +308,9 @@ class LinkedOnApp:
             print("  [5]  Change Password")
             print("  [6]  Back")
             print()
-            choice = input("  Choose an option: ").strip()
 
+            # Ask user what they want to add on their profile
+            choice = input("  Choose an option: ").strip()
             if choice == "1":
                 self.__edit_basic_info()
             elif choice == "2":
@@ -299,21 +323,24 @@ class LinkedOnApp:
                 self.__change_password()
             elif choice == "6":
                 return
-            else:
+            else:  # error validation
                 print("\n  ⚠️   Invalid option.")
                 self.__pause()
 
-    # Edit Basic Info 
+    # Edit Basic Info
     def __edit_basic_info(self):
-        self.__header("EDIT BASIC INFO")
         u = self.__current_user
+
+        # Header
+        self.__header("EDIT BASIC INFO")
         print("  Press Enter to keep the current value.\n")
 
+        # Edit name
         name = input(f"  Name [{u.name}]: ").strip()
         if name:
             u.name = name
 
-        while True:
+        while True:  # error validation
             age_in = input(f"  Age [{u.age}]: ").strip()
             if not age_in:
                 break
@@ -322,25 +349,30 @@ class LinkedOnApp:
                 break
             print("  ⚠️   Please enter a valid age (1–120).")
 
+        # Edit location
         location = input(f"  Location [{u.location}]: ").strip()
         if location:
             u.location = location
 
+        # Edit bio
         bio = input(f"  Headline/Bio [{u.bio}]: ").strip()
         if bio:
             u.bio = bio
 
+        # Save to Database and confirm changes
         self.__save_database()
         print()
         print("  ✅  Profile updated!")
         self.__pause()
 
-    # Manage Skills 
+    # Manage Skills
     def __manage_skills(self):
         while True:
+            # Header
             self.__header("MANAGE SKILLS")
-            skills = self.__current_user.skills
 
+            # Display all the user's skills
+            skills = self.__current_user.skills
             if skills:
                 print("  Your Skills:\n")
                 for i, s in enumerate(skills, 1):
@@ -348,11 +380,14 @@ class LinkedOnApp:
             else:
                 print("  You haven't added any skills yet.")
 
+            # Display all options
             print()
             print("  [A]  Add Skill")
             print("  [D]  Delete Skill")
             print("  [B]  Back")
             print()
+
+            # Ask user what they want to do with their skills
             choice = input("  Choose an option: ").strip().upper()
 
             if choice == "A":
@@ -380,16 +415,18 @@ class LinkedOnApp:
 
             elif choice == "B":
                 return
-            else:
+            else:  # error validation
                 print("\n  ⚠️   Invalid option.")
                 self.__pause()
 
     # Manage Work Experience
     def __manage_experience(self):
         while True:
+            # Header
             self.__header("WORK EXPERIENCE")
-            exps = self.__current_user.experiences
 
+            # Display all the user's work experiences
+            exps = self.__current_user.experiences
             if exps:
                 print("  Your Work Experience:\n")
                 for i, e in enumerate(exps, 1):
@@ -399,13 +436,15 @@ class LinkedOnApp:
             else:
                 print("  No work experience added yet.\n")
 
+            # Display all options
             print("  [A]  Add Experience")
             print("  [E]  Edit Experience")
             print("  [D]  Delete Experience")
             print("  [B]  Back")
             print()
-            choice = input("  Choose an option: ").strip().upper()
 
+            # Ask user what they want to do with their work experience
+            choice = input("  Choose an option: ").strip().upper()
             if choice == "A":
                 self.__add_experience()
             elif choice == "E":
@@ -430,39 +469,46 @@ class LinkedOnApp:
                         self.__pause()
             elif choice == "B":
                 return
-            else:
+            else:  # error validation
                 print("\n  ⚠️   Invalid option.")
                 self.__pause()
 
     def __add_experience(self):
+        # Header
         self.__header("ADD WORK EXPERIENCE")
+
+        # Collect all details for the new experience entry
         company = self.__prompt("Company name")
         role = self.__prompt("Job title / Role")
         start = self.__prompt("Start date  (e.g. Jan 2022)")
 
+        # Determine if this is the user's current job to handle end date accordingly
         is_curr = input("  Is this your current job? (y/n): ").strip().lower() == "y"
         end = None
         if not is_curr:
             end = self.__prompt("End date  (e.g. Dec 2023)")
 
-        exp = Experience(company=company, role=role,
-                         start_date=start, end_date=end, is_current=is_curr)
+        # Create Experience object and attach it to the current user
+        exp = Experience(company=company, role=role, start_date=start, end_date=end, is_current=is_curr)
         self.__current_user.add_experience(exp)
         self.__save_database()
         print("\n  ✅  Work experience added!")
         self.__pause()
 
     def __edit_experience(self, exps):
+        # Ask which experience entry to edit
         idx = input("  Enter experience number to edit: ").strip()
         if not (idx.isdigit() and 1 <= int(idx) <= len(exps)):
             print("\n  ⚠️   Invalid number.")
             self.__pause()
             return
 
+        # Header
         exp = exps[int(idx) - 1]
         self.__header("EDIT WORK EXPERIENCE")
         print("  Press Enter to keep the current value.\n")
 
+        # Edit company, role, and start date — only update if user provides a new value
         c = input(f"  Company [{exp.company}]: ").strip()
         if c:
             exp.company = c
@@ -475,16 +521,18 @@ class LinkedOnApp:
         if s:
             exp.start_date = s
 
+        # Update current job status and end date based on user's answer
         curr = input(f"  Currently working here? (y/n) [{'y' if exp.is_current else 'n'}]: ").strip().lower()
         if curr == "y":
             exp.is_current = True
-            exp.end_date = None
+            exp.end_date = None  # clear end date since job is ongoing
         elif curr == "n":
             exp.is_current = False
             e = input(f"  End date [{exp.end_date}]: ").strip()
             if e:
                 exp.end_date = e
 
+        # Save changes to database and confirm
         self.__save_database()
         print("\n  ✅  Experience updated!")
         self.__pause()
@@ -492,9 +540,11 @@ class LinkedOnApp:
     # Manage Education
     def __manage_education(self):
         while True:
+            # Header
             self.__header("EDUCATION")
-            edus = self.__current_user.educations
 
+            # Display all the user's education entries
+            edus = self.__current_user.educations
             if edus:
                 print("  Your Education:\n")
                 for i, e in enumerate(edus, 1):
@@ -504,13 +554,15 @@ class LinkedOnApp:
             else:
                 print("  No education added yet.\n")
 
+            # Display all options
             print("  [A]  Add Education")
             print("  [E]  Edit Education")
             print("  [D]  Delete Education")
             print("  [B]  Back")
             print()
-            choice = input("  Choose an option: ").strip().upper()
 
+            # Ask user what they want to do with their education
+            choice = input("  Choose an option: ").strip().upper()
             if choice == "A":
                 self.__add_education()
             elif choice == "E":
@@ -535,21 +587,26 @@ class LinkedOnApp:
                         self.__pause()
             elif choice == "B":
                 return
-            else:
+            else:  # error validation
                 print("\n  ⚠️   Invalid option.")
                 self.__pause()
 
     def __add_education(self):
+        # Header
         self.__header("ADD EDUCATION")
+
+        # Collect all details for the new education entry
         school = self.__prompt("School name")
         degree = self.__prompt("Degree / Course")
         year_start = self.__prompt("Year started  (e.g. 2020)")
 
+        # Determine if the user is still studying to handle year ended accordingly
         ongoing = input("  Still studying here? (y/n): ").strip().lower() == "y"
         year_end = None
         if not ongoing:
             year_end = self.__prompt("Year ended  (e.g. 2024)")
 
+        # Create Education object and attach it to the current user
         edu = Education(school_name=school, degree=degree,
                         year_started=year_start, year_ended=year_end)
         self.__current_user.add_education(edu)
@@ -558,16 +615,19 @@ class LinkedOnApp:
         self.__pause()
 
     def __edit_education(self, edus):
+        # Ask which education entry to edit
         idx = input("  Enter education number to edit: ").strip()
         if not (idx.isdigit() and 1 <= int(idx) <= len(edus)):
             print("\n  ⚠️   Invalid number.")
             self.__pause()
             return
 
+        # Header
         edu = edus[int(idx) - 1]
         self.__header("EDIT EDUCATION")
         print("  Press Enter to keep the current value.\n")
 
+        # Edit all fields — only update if the user provides a new value
         s = input(f"  School [{edu.school_name}]: ").strip()
         if s:
             edu.school_name = s
@@ -584,30 +644,36 @@ class LinkedOnApp:
         if ye:
             edu.year_ended = ye
 
+        # Save changes to database and confirm
         self.__save_database()
         print("\n  ✅  Education updated!")
         self.__pause()
 
-    # Change Password 
+    # Change Password
     def __change_password(self):
+        # Header
         self.__header("CHANGE PASSWORD")
+
+        # Verify the user knows their current password before allowing a change
         old = self.__prompt("Current password")
         if not self.__current_user.verify_password(old):
             print("\n  ❌  Incorrect current password.")
             self.__pause()
             return
 
+        # Collect and validate the new password
         while True:
             new_pass = self.__prompt("New password (min. 8 characters)")
             if len(new_pass) < 8:
                 print("  ⚠️   Must be at least 8 characters.")
                 continue
             confirm = self.__prompt("Confirm new password")
-            if new_pass != confirm:
+            if new_pass != confirm:  # error validation
                 print("  ⚠️   Passwords do not match.")
                 continue
             break
 
+        # Save the new password hash and confirm
         self.__current_user.change_password(new_pass)
         self.__save_database()
         print("\n  ✅  Password changed successfully!")
@@ -619,9 +685,11 @@ class LinkedOnApp:
 
     def __my_posts_menu(self):
         while True:
+            # Header
             self.__header("MY POSTS")
             post_ids = self.__current_user.post_ids
 
+            # Display all the user's posts if any exist
             if post_ids:
                 print(f"  You have {len(post_ids)} post(s):\n")
                 for i, pid in enumerate(post_ids, 1):
@@ -633,12 +701,14 @@ class LinkedOnApp:
             else:
                 print("  You haven't made any posts yet.\n")
 
+            # Display all options
             print("  [A]  Create Post")
             print("  [D]  Delete Post")
             print("  [B]  Back")
             print()
-            choice = input("  Choose an option: ").strip().upper()
 
+            # Ask user what they want to do with their posts
+            choice = input("  Choose an option: ").strip().upper()
             if choice == "A":
                 self.__create_post()
             elif choice == "D":
@@ -649,23 +719,28 @@ class LinkedOnApp:
                     self.__delete_post(post_ids)
             elif choice == "B":
                 return
-            else:
+            else:  # error validation
                 print("\n  ⚠️   Invalid option.")
                 self.__pause()
 
     def __create_post(self):
+        # Header
         self.__header("CREATE A POST")
         print("  What type of post would you like to create?\n")
+
+        # Display all post types
         print("  [1]  Text Post       — share a general update")
         print("  [2]  Job Posting     — advertise an open position")
         print("  [3]  Achievement     — celebrate a milestone")
         print()
 
+        # Generate a unique ID for the post and get the author's details
         choice = input("  Choose post type: ").strip()
         pid = str(uuid.uuid4())
         uid = self.__current_user.user_id
         uname = self.__current_user.name or self.__current_user.email
 
+        # Collect post-specific fields based on the chosen post type
         if choice == "1":
             content = self.__prompt("What's on your mind?")
             post = TextPost(pid, uid, uname, content)
@@ -682,11 +757,12 @@ class LinkedOnApp:
             content = self.__prompt("Tell us more about it")
             post = AchievementPost(pid, uid, uname, content, achievement_title)
 
-        else:
+        else:  # error validation
             print("\n  ⚠️   Invalid post type.")
             self.__pause()
             return
 
+        # Register the post in the global posts dictionary and link it to the user
         self.__posts[pid] = post
         self.__current_user.add_post_id(pid)
         self.__save_database()
@@ -694,12 +770,14 @@ class LinkedOnApp:
         self.__pause()
 
     def __delete_post(self, post_ids):
+        # Ask which post to delete
         idx = input("  Enter post number to delete: ").strip()
         if not (idx.isdigit() and 1 <= int(idx) <= len(post_ids)):
             print("\n  ⚠️   Invalid number.")
             self.__pause()
             return
 
+        # Remove the post from the user's post list and from the global posts dictionary
         pid = post_ids[int(idx) - 1]
         self.__current_user.remove_post_id(pid)
         if pid in self.__posts:
@@ -714,15 +792,19 @@ class LinkedOnApp:
 
     def __network_menu(self):
         while True:
+            # Header — show live pending count on the requests option
             pending = self.__pending_count()
             self.__header("NETWORK")
+
+            # Display all options
             print("  [1]  Search for a User")
             print("  [2]  My Connections")
             print(f"  [3]  Connection Requests  ({pending} pending)")
             print("  [4]  Back")
             print()
-            choice = input("  Choose an option: ").strip()
 
+            # Ask user what they want to do
+            choice = input("  Choose an option: ").strip()
             if choice == "1":
                 self.__search_users()
             elif choice == "2":
@@ -731,14 +813,16 @@ class LinkedOnApp:
                 self.__manage_requests()
             elif choice == "4":
                 return
-            else:
+            else:  # error validation
                 print("\n  ⚠️   Invalid option.")
                 self.__pause()
 
     def __search_users(self):
+        # Header
         self.__header("SEARCH USERS")
         query = self.__prompt("Search by name or school").lower()
 
+        # Filter all users by name or school name, excluding the current user
         results = [
             u for u in self.__users.values()
             if u.user_id != self.__current_user.user_id
@@ -753,6 +837,7 @@ class LinkedOnApp:
             self.__pause()
             return
 
+        # Display results, annotating each with the current connection status if one exists
         print(f"\n  Found {len(results)} user(s):\n")
         for i, u in enumerate(results, 1):
             conn = self.__get_connection(self.__current_user.user_id, u.user_id)
@@ -760,21 +845,23 @@ class LinkedOnApp:
             bio_snippet = f"  — {u.bio}" if u.bio else ""
             print(f"  [{i}]  {u.name or u.email}{bio_snippet}{tag}")
 
+        # Let the user select a result to view the full profile
         print()
         idx = input("  Enter number to view profile (0 to cancel): ").strip()
         if idx == "0":
             return
         if idx.isdigit() and 1 <= int(idx) <= len(results):
             self.__view_other_profile(results[int(idx) - 1])
-        else:
+        else:  # error validation
             print("\n  ⚠️   Invalid number.")
             self.__pause()
 
     def __view_other_profile(self, user):
+        # Header
         self.__header(f"PROFILE: {user.name or user.email}")
         user.display()
 
-        # Show up to 3 recent posts
+        # Show up to 3 of the user's most recent posts
         if user.post_ids:
             recent = user.post_ids[-3:]
             print(f"\n  Recent Posts ({len(user.post_ids)} total):\n")
@@ -785,12 +872,13 @@ class LinkedOnApp:
                     post.display()
             print("  " + "─" * 46)
 
-        # Connection action
+        # Check the connection status between the viewer and this profile's owner
         my_id = self.__current_user.user_id
         conn = self.__get_connection(my_id, user.user_id)
         print()
 
         if conn is None:
+            # No connection exists yet — offer to send a request
             send = input("  Send connection request? (y/n): ").strip().lower()
             if send == "y":
                 self.__connections.append(Connection(my_id, user.user_id))
@@ -798,7 +886,7 @@ class LinkedOnApp:
                 print("  ✅  Connection request sent!")
 
         elif conn.status == Connection.PENDING:
-            # Maybe it's ours, maybe it's theirs
+            # A request is in progress — show who is waiting on whom
             if conn.sender_id == my_id:
                 print("  ⏳  Your connection request is still pending.")
             else:
@@ -806,6 +894,7 @@ class LinkedOnApp:
                 print("  Go to Network > Connection Requests to respond.")
 
         elif conn.status == Connection.ACCEPTED:
+            # Already connected — offer the option to remove the connection
             print("  🤝  You are already connected.")
             remove = input("  Remove this connection? (y/n): ").strip().lower()
             if remove == "y":
@@ -814,13 +903,16 @@ class LinkedOnApp:
                 print("  ✅  Connection removed.")
 
         elif conn.status == Connection.DECLINED:
+            # A previous request was declined — inform the user
             print("  ❌  This connection request was previously declined.")
 
         self.__pause()
 
     def __view_connections(self):
+        # Header
         self.__header("MY CONNECTIONS")
 
+        # Gather all users who share an accepted connection with the current user
         connected_users = []
         for c in self.__connections:
             if c.involves(self.__current_user.user_id) and c.status == Connection.ACCEPTED:
@@ -835,24 +927,28 @@ class LinkedOnApp:
             self.__pause()
             return
 
+        # List all connected users with their headline
         print(f"  You have {len(connected_users)} connection(s):\n")
         for i, u in enumerate(connected_users, 1):
             bio = u.bio if u.bio else "No headline"
             print(f"  [{i}]  {u.name or u.email}  —  {bio}")
 
+        # Let the user select a connection to view their full profile
         print()
         idx = input("  Enter number to view profile (0 to go back): ").strip()
         if idx == "0":
             return
         if idx.isdigit() and 1 <= int(idx) <= len(connected_users):
             self.__view_other_profile(connected_users[int(idx) - 1])
-        else:
+        else:  # error validation
             print("\n  ⚠️   Invalid number.")
             self.__pause()
 
     def __manage_requests(self):
+        # Header
         self.__header("CONNECTION REQUESTS")
 
+        # Collect all pending requests addressed to the current user
         pending = [
             c for c in self.__connections
             if c.receiver_id == self.__current_user.user_id
@@ -864,6 +960,7 @@ class LinkedOnApp:
             self.__pause()
             return
 
+        # List all senders with their headline
         print(f"  {len(pending)} pending request(s):\n")
         senders = []
         for i, c in enumerate(pending, 1):
@@ -873,6 +970,7 @@ class LinkedOnApp:
                 bio = sender.bio if sender.bio else "No headline"
                 print(f"  [{i}]  {sender.name or sender.email}  —  {bio}")
 
+        # Ask the user to select a request to respond to
         print()
         idx = input("  Enter number to respond (0 to go back): ").strip()
         if idx == "0":
@@ -882,6 +980,7 @@ class LinkedOnApp:
             self.__pause()
             return
 
+        # Display the selected sender and the response options
         conn, sender = senders[int(idx) - 1]
         print()
         print(f"  Request from: {sender.name or sender.email}")
@@ -890,8 +989,9 @@ class LinkedOnApp:
         print("  [2]  Decline")
         print("  [3]  Decide later")
         print()
-        action = input("  Choose: ").strip()
 
+        # Process the user's response and update the connection status
+        action = input("  Choose: ").strip()
         if action == "1":
             conn.accept()
             self.__save_database()
@@ -900,6 +1000,7 @@ class LinkedOnApp:
             conn.decline()
             self.__save_database()
             print("\n  Request declined.")
+        # action == "3" or anything else — do nothing, request stays pending
 
         self.__pause()
 
@@ -908,15 +1009,16 @@ class LinkedOnApp:
     # =========================================================================
 
     def __view_feed(self):
+        # Header
         self.__header("FEED")
 
-        # Gather all connected user IDs, plus the current user
+        # Gather the current user's ID plus all accepted connections' IDs
         connected_ids = [self.__current_user.user_id]
         for c in self.__connections:
             if c.involves(self.__current_user.user_id) and c.status == Connection.ACCEPTED:
                 connected_ids.append(c.get_other(self.__current_user.user_id))
 
-        # Collect all posts from those users
+        # Collect every post from all gathered user IDs
         all_posts = []
         for uid in connected_ids:
             user = self.__users.get(uid)
@@ -932,7 +1034,7 @@ class LinkedOnApp:
             self.__pause()
             return
 
-        # Sort newest first
+        # Sort all posts newest first, then display them
         all_posts.sort(key=lambda p: p.timestamp, reverse=True)
 
         print(f"  {len(all_posts)} post(s) in your feed:\n")
