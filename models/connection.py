@@ -33,19 +33,17 @@ class Connection:
     # =========================================================================
 
     def accept(self):
-        """Accept the connection request."""
         self.__status = self.ACCEPTED
 
     def decline(self):
-        """Decline the connection request."""
         self.__status = self.DECLINED
 
+    # Check if a given user is part of this connection
     def involves(self, user_id):
-        """Check if a given user is part of this connection."""
         return self.__sender_id == user_id or self.__receiver_id == user_id
 
+    # Given one user's ID, return the other participant's ID.
     def get_other(self, user_id):
-        """Given one user's ID, return the other participant's ID."""
         if self.__sender_id == user_id:
             return self.__receiver_id
         return self.__sender_id

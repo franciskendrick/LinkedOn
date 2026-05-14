@@ -62,8 +62,8 @@ class Post(Entity):
         }
 
     @classmethod
+    # Polymorph to the correct subclass based on type
     def from_dict(cls, data):
-        """Factory method — delegates to the correct subclass based on type."""
         post_type = data.get("type", "text")
         if post_type == "job":
             return JobPost.from_dict(data)
@@ -74,7 +74,9 @@ class Post(Entity):
 
 
 class TextPost(Post):
-    """A plain text status update. Inherits from Post."""
+    """
+    A plain text status update. Inherits from Post.
+    """
 
     def display(self):
         print(f"  ✏️   {self.author_name}  ·  {self.timestamp}")
@@ -97,7 +99,9 @@ class TextPost(Post):
 
 
 class JobPost(Post):
-    """A job listing post. Inherits from Post and adds job-specific fields."""
+    """
+    A job listing post. Inherits from Post and adds job-specific fields.
+    """
 
     def __init__(self, post_id, author_id, author_name, content, job_title, company, job_type, timestamp=None):
         super().__init__(post_id, author_id, author_name, content, timestamp)
@@ -150,7 +154,9 @@ class JobPost(Post):
 
 
 class AchievementPost(Post):
-    """A milestone or award post. Inherits from Post and adds an achievement title."""
+    """
+    A milestone or award post. Inherits from Post and adds an achievement title.
+    """
 
     def __init__(self, post_id, author_id, author_name, content, achievement_title, timestamp=None):
         super().__init__(post_id, author_id, author_name, content, timestamp)

@@ -2,18 +2,18 @@ from abc import ABC, abstractmethod
 
 
 class Entity(ABC):
+    # Print a formatted view of the entity to the terminal
     @abstractmethod
     def display(self):
-        """Print a formatted view of the entity to the terminal."""
         pass
 
+    # Serialize the entity to a dictionary for JSON storage
     @abstractmethod
     def to_dict(self):
-        """Serialize the entity to a dictionary for JSON storage."""
         pass
 
+    # Deserialize and reconstruct the entity from a dictionary
     @classmethod
     @abstractmethod
     def from_dict(cls, data):
-        """Deserialize and reconstruct the entity from a dictionary."""
         pass
