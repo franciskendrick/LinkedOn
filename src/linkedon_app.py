@@ -1,11 +1,11 @@
 import json
 import os
 
-from models.user import User
-from models.experience import Experience
-from models.education import Education
-from models.post import Post, TextPost, JobPost, AchievementPost
-from models.connection import Connection
+from user import User
+from experience import Experience
+from education import Education
+from post import Post, TextPost, JobPost, AchievementPost
+from connection import Connection
 
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "database.json")
 

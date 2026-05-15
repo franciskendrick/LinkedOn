@@ -1,6 +1,6 @@
-from models.entity import Entity
-from models.experience import Experience
-from models.education import Education
+from entity import Entity
+from experience import Experience
+from education import Education
 
 
 class User(Entity):
@@ -21,7 +21,7 @@ class User(Entity):
         self._skills = skills if skills is not None else []
         self._experiences = []
         self._educations = []
-        self._post_ids = []   # stores only IDs; Post objects live in the app
+        self._post_ids = []   # stores only IDs. Post objects live in the app
 
     # =========================================================================
     # Password Utilities
@@ -104,7 +104,6 @@ class User(Entity):
         self._bio = value
 
     # Experience Methods
-
     def add_experience(self, exp):
         self._experiences.append(exp)
 
@@ -112,7 +111,6 @@ class User(Entity):
         del self._experiences[index]
 
     # Education Methods
-
     def add_education(self, edu):
         self._educations.append(edu)
 
@@ -120,7 +118,6 @@ class User(Entity):
         del self._educations[index]
 
     # Skill Methods
-
     def add_skill(self, skill):
         if skill not in self._skills:
             self._skills.append(skill)
@@ -130,7 +127,6 @@ class User(Entity):
             self._skills.remove(skill)
 
     # Post ID Methods
-
     def add_post_id(self, post_id):
         self._post_ids.append(post_id)
 

@@ -1,4 +1,4 @@
-from app.linkedon_app import LinkedOnApp
+from linkedon_app import LinkedOnApp
 
 
 def main():

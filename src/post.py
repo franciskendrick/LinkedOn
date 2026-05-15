@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from datetime import datetime
 
-from models.entity import Entity
+from entity import Entity
 
 
 class Post(Entity):
