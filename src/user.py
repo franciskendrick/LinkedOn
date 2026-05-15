@@ -103,21 +103,21 @@ class User(Entity):
     def bio(self, value):
         self._bio = value
 
-    # Experience Methods
+    # Experience Methods ------------------------------------------------------
     def add_experience(self, exp):
         self._experiences.append(exp)
 
     def remove_experience(self, index):
         del self._experiences[index]
 
-    # Education Methods
+    # Education Methods -------------------------------------------------------
     def add_education(self, edu):
         self._educations.append(edu)
 
     def remove_education(self, index):
         del self._educations[index]
 
-    # Skill Methods
+    # Skill Methods -----------------------------------------------------------
     def add_skill(self, skill):
         if skill not in self._skills:
             self._skills.append(skill)
@@ -126,7 +126,7 @@ class User(Entity):
         if skill in self._skills:
             self._skills.remove(skill)
 
-    # Post ID Methods
+    # Post ID Methods ---------------------------------------------------------
     def add_post_id(self, post_id):
         self._post_ids.append(post_id)
 

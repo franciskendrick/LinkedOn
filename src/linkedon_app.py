@@ -170,7 +170,7 @@ class LinkedOnApp:
         # Header
         self.__header("CREATE AN ACCOUNT")
 
-        # Email. Only check if it's already taken
+        # Email (Only check if it's already taken)
         while True:
             email = self.__prompt("Email")
             if self.__email_taken(email):
@@ -190,7 +190,7 @@ class LinkedOnApp:
                 continue
             break
 
-        # Create user
+        # Use the email as the user ID since it is already unique
         new_user = User(user_id=email, email=email, password=password)
         self.__users[email] = new_user
         self.__save_database()
@@ -494,7 +494,7 @@ class LinkedOnApp:
         self.__header("EDIT WORK EXPERIENCE")
         print("  Press Enter to keep the current value.\n")
 
-        # Edit company, role, and start date. Only update if user provides a new value
+        # Edit company, role, and start date (only update if user provides a new value)
         c = input(f"  Company [{exp.company}]: ").strip()
         if c:
             exp.company = c
@@ -613,7 +613,7 @@ class LinkedOnApp:
         self.__header("EDIT EDUCATION")
         print("  Press Enter to keep the current value.\n")
 
-        # Edit all fields. Only update if the user provides a new value
+        # Edit all fields (only update if the user provides a new value)
         s = input(f"  School [{edu.school_name}]: ").strip()
         if s:
             edu.school_name = s
@@ -778,7 +778,7 @@ class LinkedOnApp:
 
     def __network_menu(self):
         while True:
-            # Header
+            # Header (show live pending count on the requests option)
             pending = self.__pending_count()
             self.__header("NETWORK")
 
@@ -809,14 +809,25 @@ class LinkedOnApp:
         query = self.__prompt("Search by name or school").lower()
 
         # Filter all users by name or school name, excluding the current user
-        results = [
-            u for u in self.__users.values()
-            if u.user_id != self.__current_user.user_id
-            and (
-                query in (u.name or "").lower()
-                or any(query in (e.school_name or "").lower() for e in u.educations)
-            )
-        ]
+        results = []
+        for u in self.__users.values():
+            # Skip the current user
+            if u.user_id == self.__current_user.user_id:
+                continue
+
+            # Check if the query matches the user's name
+            name_match = query in u.name.lower()
+
+            # Check if the query matches any of the user's school names
+            school_match = False
+            for e in u.educations:
+                if query in e.school_name.lower():
+                    school_match = True
+                    break
+
+            # Add the user to results if either the name or school matched
+            if name_match or school_match:
+                results.append(u)
 
         if not results:
             print("\n  No users found matching that query.")
@@ -825,11 +836,30 @@ class LinkedOnApp:
 
         # Display results, annotating each with the current connection status if one exists
         print(f"\n  Found {len(results)} user(s):\n")
-        for i, u in enumerate(results, 1):
+        i = 1
+        for u in results:
             conn = self.__get_connection(self.__current_user.user_id, u.user_id)
-            tag = f"  [{conn.status}]" if conn else ""
-            bio_snippet = f"  - {u.bio}" if u.bio else ""
-            print(f"  [{i}]  {u.name or u.email}{bio_snippet}{tag}")
+
+            # Build the connection status tag if a connection exists
+            if conn:
+                tag = f"  [{conn.status}]"
+            else:
+                tag = ""
+
+            # Build the bio snippet if the user has a bio
+            if u.bio:
+                bio_snippet = f"  - {u.bio}"
+            else:
+                bio_snippet = ""
+
+            # Display the user's name if they have one, otherwise show their email
+            if u.name:
+                display_name = u.name
+            else:
+                display_name = u.email
+
+            print(f"  [{i}]  {display_name}{bio_snippet}{tag}")
+            i += 1
 
         # Let the user select a result to view the full profile
         print()
@@ -864,7 +894,7 @@ class LinkedOnApp:
         print()
 
         if conn is None:
-            # No connection exists yet. Offer to send a request
+            # No connection exists yet (offer to send a request)
             send = input("  Send connection request? (y/n): ").strip().lower()
             if send == "y":
                 self.__connections.append(Connection(my_id, user.user_id))
@@ -872,7 +902,7 @@ class LinkedOnApp:
                 print("  ✅  Connection request sent!")
 
         elif conn.status == Connection.PENDING:
-            # A request is in progress. Show who is waiting on whom
+            # A request is in progress (show who is waiting on whom)
             if conn.sender_id == my_id:
                 print("  ⏳  Your connection request is still pending.")
             else:
@@ -880,7 +910,7 @@ class LinkedOnApp:
                 print("  Go to Network > Connection Requests to respond.")
 
         elif conn.status == Connection.ACCEPTED:
-            # Already connected. Offer the option to remove the connection
+            # Already connected (offer the option to remove the connection)
             print("  🤝  You are already connected.")
             remove = input("  Remove this connection? (y/n): ").strip().lower()
             if remove == "y":
@@ -889,7 +919,7 @@ class LinkedOnApp:
                 print("  ✅  Connection removed.")
 
         elif conn.status == Connection.DECLINED:
-            # A previous request was declined. Inform the user
+            # A previous request was declined (inform the user)
             print("  ❌  This connection request was previously declined.")
 
         self.__pause()
@@ -1020,7 +1050,7 @@ class LinkedOnApp:
             return
 
         # Sort all posts newest first, then display them
-        all_posts.sort(key=lambda p: p.timestamp, reverse=True)
+        all_posts.sort(key=post.timestamp, reverse=True)
 
         print(f"  {len(all_posts)} post(s) in your feed:\n")
         for post in all_posts:

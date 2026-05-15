@@ -61,8 +61,8 @@ class Post(Entity):
             "timestamp": self.__timestamp,
         }
 
-    @classmethod
     # Polymorph to the correct subclass based on type
+    @classmethod
     def from_dict(cls, data):
         post_type = data.get("type", "text")
         if post_type == "job":

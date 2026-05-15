@@ -47,6 +47,19 @@
             "experiences": [],
             "educations": [],
             "post_ids": []
+        },
+        "kyle@gmail.com": {
+            "user_id": "kyle@gmail.com",
+            "email": "kyle@gmail.com",
+            "password": "wordword",
+            "name": "",
+            "age": null,
+            "location": "",
+            "bio": "",
+            "skills": [],
+            "experiences": [],
+            "educations": [],
+            "post_ids": []
         }
     },
     "posts": {
