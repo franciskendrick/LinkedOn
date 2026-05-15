@@ -1,9 +1,9 @@
 {
     "users": {
-        "33901a37-f2c8-4be4-83aa-7af2aa48d305": {
-            "user_id": "33901a37-f2c8-4be4-83aa-7af2aa48d305",
+        "francis@gmail.com": {
+            "user_id": "francis@gmail.com",
             "email": "francis@gmail.com",
-            "password_hash": "c0e21a8ff85153deac82fe7f09c0da1b3bd90ac0ae204e78d7148753b4363c03",
+            "password": "wordpass",
             "name": "Francis Maddumba",
             "age": 20,
             "location": "Dasmarinas, Cavite",
@@ -16,13 +16,13 @@
             "experiences": [],
             "educations": [],
             "post_ids": [
-                "e80b3b81-a75c-46f2-9530-3cf504647a5a"
+                "1"
             ]
         },
-        "0a416da8-220e-4a61-9556-453bf350e8a9": {
-            "user_id": "0a416da8-220e-4a61-9556-453bf350e8a9",
+        "chris@gmail.com": {
+            "user_id": "chris@gmail.com",
             "email": "chris@gmail.com",
-            "password_hash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+            "password": "password",
             "name": "",
             "age": null,
             "location": "",
@@ -32,10 +32,10 @@
             "educations": [],
             "post_ids": []
         },
-        "c80d2fc7-dbd5-4602-a4a4-ffe06472ebf0": {
-            "user_id": "c80d2fc7-dbd5-4602-a4a4-ffe06472ebf0",
+        "johnrhei@gmail.com": {
+            "user_id": "johnrhei@gmail.com",
             "email": "johnrhei@gmail.com",
-            "password_hash": "ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f",
+            "password": "password",
             "name": "",
             "age": null,
             "location": "",
@@ -47,9 +47,9 @@
         }
     },
     "posts": {
-        "e80b3b81-a75c-46f2-9530-3cf504647a5a": {
-            "post_id": "e80b3b81-a75c-46f2-9530-3cf504647a5a",
-            "author_id": "33901a37-f2c8-4be4-83aa-7af2aa48d305",
+        "1": {
+            "post_id": "1",
+            "author_id": "francis@gmail.com",
             "author_name": "Francis Maddumba",
             "content": "basta",
             "timestamp": "2026-05-09 01:20",
@@ -61,13 +61,13 @@
     },
     "connections": [
         {
-            "sender_id": "0a416da8-220e-4a61-9556-453bf350e8a9",
-            "receiver_id": "33901a37-f2c8-4be4-83aa-7af2aa48d305",
+            "sender_id": "chris@gmail.com",
+            "receiver_id": "francis@gmail.com",
             "status": "accepted"
         },
         {
-            "sender_id": "c80d2fc7-dbd5-4602-a4a4-ffe06472ebf0",
-            "receiver_id": "33901a37-f2c8-4be4-83aa-7af2aa48d305",
+            "sender_id": "johnrhei@gmail.com",
+            "receiver_id": "francis@gmail.com",
             "status": "pending"
         }
     ]

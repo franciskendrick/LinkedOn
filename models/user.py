@@ -1,6 +1,6 @@
-import hashlib
-
 from models.entity import Entity
+from models.experience import Experience
+from models.education import Education
 
 
 class User(Entity):
@@ -8,10 +8,10 @@ class User(Entity):
     Represents a LinkedOn user and their professional profile.
     """
 
-    def __init__(self, user_id, email, password_hash, name="", age=None, location="", bio="", skills=None):
+    def __init__(self, user_id, email, password, name="", age=None, location="", bio="", skills=None):
         self.__user_id = user_id
         self.__email = email
-        self.__password_hash = password_hash
+        self.__password = password
 
         # Profile fields (semi-public, editable through the app)
         self._name = name
@@ -23,18 +23,17 @@ class User(Entity):
         self._educations = []
         self._post_ids = []   # stores only IDs; Post objects live in the app
 
-    # Password Utilities ------------------------------------------------------
-    @staticmethod
-    def hash_password(password):
-        """One-way SHA-256 hash. Passwords are never stored in plain text."""
-        return hashlib.sha256(password.encode()).hexdigest()
+    # =========================================================================
+    # Password Utilities
+    # =========================================================================
 
     def verify_password(self, password):
-        return self.__password_hash == User.hash_password(password)
+        # Directly compare the input against the stored password
+        return self.__password == password
 
     def change_password(self, new_password):
-        """Overwrite the stored password hash with a new one."""
-        self.__password_hash = User.hash_password(new_password)
+        # Overwrite the stored password with the new one
+        self.__password = new_password
 
     # =========================================================================
     # Getters
@@ -104,21 +103,24 @@ class User(Entity):
     def bio(self, value):
         self._bio = value
 
-    # Experience Methods ------------------------------------------------------
+    # Experience Methods
+
     def add_experience(self, exp):
         self._experiences.append(exp)
 
     def remove_experience(self, index):
         del self._experiences[index]
 
-    # Eduction Methods --------------------------------------------------------
+    # Education Methods
+
     def add_education(self, edu):
         self._educations.append(edu)
 
     def remove_education(self, index):
         del self._educations[index]
 
-    # Skill Methods -----------------------------------------------------------
+    # Skill Methods
+
     def add_skill(self, skill):
         if skill not in self._skills:
             self._skills.append(skill)
@@ -127,7 +129,8 @@ class User(Entity):
         if skill in self._skills:
             self._skills.remove(skill)
 
-    # Post ID Methods ---------------------------------------------------------
+    # Post ID Methods
+
     def add_post_id(self, post_id):
         self._post_ids.append(post_id)
 
@@ -138,7 +141,7 @@ class User(Entity):
     # =========================================================================
     # Display & Serialization
     # =========================================================================
-    
+
     def display(self):
         W = 52
         print("  " + "═" * W)
@@ -175,7 +178,7 @@ class User(Entity):
         return {
             "user_id": self.__user_id,
             "email": self.__email,
-            "password_hash": self.__password_hash,
+            "password": self.__password,
             "name": self._name,
             "age": self._age,
             "location": self._location,
@@ -191,12 +194,14 @@ class User(Entity):
         user = cls(
             user_id=data["user_id"],
             email=data["email"],
-            password_hash=data["password_hash"],
+            password=data["password"],
             name=data.get("name", ""),
             age=data.get("age"),
             location=data.get("location", ""),
             bio=data.get("bio", ""),
             skills=data.get("skills", []),
         )
+        user._experiences = [Experience.from_dict(e) for e in data.get("experiences", [])]
+        user._educations = [Education.from_dict(e) for e in data.get("educations", [])]
         user._post_ids = data.get("post_ids", [])
         return user

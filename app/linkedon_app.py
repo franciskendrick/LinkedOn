@@ -1,7 +1,5 @@
 import json
 import os
-import re
-import uuid
 
 from models.user import User
 from models.experience import Experience
@@ -97,10 +95,6 @@ class LinkedOnApp:
                 return val
             print("  ⚠️   This field cannot be empty. Please try again.")
 
-    @staticmethod
-    def __valid_email(email):
-        return re.match(r'^[\w.%+\-]+@[\w.\-]+\.[a-zA-Z]{2,}$', email) is not None
-
     def __email_taken(self, email):
         return any(u.email == email for u in self.__users.values())
 
@@ -176,12 +170,9 @@ class LinkedOnApp:
         # Header
         self.__header("CREATE AN ACCOUNT")
 
-        # Email
+        # Email. Only check if it's already taken
         while True:
             email = self.__prompt("Email")
-            if not self.__valid_email(email):
-                print("  ⚠️   Invalid email format. Example: name@example.com")
-                continue
             if self.__email_taken(email):
                 print("  ⚠️   That email is already registered.")
                 continue
@@ -199,14 +190,9 @@ class LinkedOnApp:
                 continue
             break
 
-        # Encrypt password and create user
-        user_id = str(uuid.uuid4())
-        new_user = User(
-            user_id=user_id,
-            email=email,
-            password_hash=User.hash_password(password),
-        )
-        self.__users[user_id] = new_user
+        # Create user
+        new_user = User(user_id=email, email=email, password=password)
+        self.__users[email] = new_user
         self.__save_database()
 
         # Confirmation message
@@ -508,7 +494,7 @@ class LinkedOnApp:
         self.__header("EDIT WORK EXPERIENCE")
         print("  Press Enter to keep the current value.\n")
 
-        # Edit company, role, and start date — only update if user provides a new value
+        # Edit company, role, and start date. Only update if user provides a new value
         c = input(f"  Company [{exp.company}]: ").strip()
         if c:
             exp.company = c
@@ -627,7 +613,7 @@ class LinkedOnApp:
         self.__header("EDIT EDUCATION")
         print("  Press Enter to keep the current value.\n")
 
-        # Edit all fields — only update if the user provides a new value
+        # Edit all fields. Only update if the user provides a new value
         s = input(f"  School [{edu.school_name}]: ").strip()
         if s:
             edu.school_name = s
@@ -673,7 +659,7 @@ class LinkedOnApp:
                 continue
             break
 
-        # Save the new password hash and confirm
+        # Save the new password and confirm
         self.__current_user.change_password(new_pass)
         self.__save_database()
         print("\n  ✅  Password changed successfully!")
@@ -729,14 +715,14 @@ class LinkedOnApp:
         print("  What type of post would you like to create?\n")
 
         # Display all post types
-        print("  [1]  Text Post       — share a general update")
-        print("  [2]  Job Posting     — advertise an open position")
-        print("  [3]  Achievement     — celebrate a milestone")
+        print("  [1]  Text Post       - share a general update")
+        print("  [2]  Job Posting     - advertise an open position")
+        print("  [3]  Achievement     - celebrate a milestone")
         print()
 
-        # Generate a unique ID for the post and get the author's details
+        # Generate a simple numeric post ID based on the current total post count
         choice = input("  Choose post type: ").strip()
-        pid = str(uuid.uuid4())
+        pid = str(len(self.__posts) + 1)
         uid = self.__current_user.user_id
         uname = self.__current_user.name or self.__current_user.email
 
@@ -792,7 +778,7 @@ class LinkedOnApp:
 
     def __network_menu(self):
         while True:
-            # Header — show live pending count on the requests option
+            # Header
             pending = self.__pending_count()
             self.__header("NETWORK")
 
@@ -842,7 +828,7 @@ class LinkedOnApp:
         for i, u in enumerate(results, 1):
             conn = self.__get_connection(self.__current_user.user_id, u.user_id)
             tag = f"  [{conn.status}]" if conn else ""
-            bio_snippet = f"  — {u.bio}" if u.bio else ""
+            bio_snippet = f"  - {u.bio}" if u.bio else ""
             print(f"  [{i}]  {u.name or u.email}{bio_snippet}{tag}")
 
         # Let the user select a result to view the full profile
@@ -878,7 +864,7 @@ class LinkedOnApp:
         print()
 
         if conn is None:
-            # No connection exists yet — offer to send a request
+            # No connection exists yet. Offer to send a request
             send = input("  Send connection request? (y/n): ").strip().lower()
             if send == "y":
                 self.__connections.append(Connection(my_id, user.user_id))
@@ -886,7 +872,7 @@ class LinkedOnApp:
                 print("  ✅  Connection request sent!")
 
         elif conn.status == Connection.PENDING:
-            # A request is in progress — show who is waiting on whom
+            # A request is in progress. Show who is waiting on whom
             if conn.sender_id == my_id:
                 print("  ⏳  Your connection request is still pending.")
             else:
@@ -894,7 +880,7 @@ class LinkedOnApp:
                 print("  Go to Network > Connection Requests to respond.")
 
         elif conn.status == Connection.ACCEPTED:
-            # Already connected — offer the option to remove the connection
+            # Already connected. Offer the option to remove the connection
             print("  🤝  You are already connected.")
             remove = input("  Remove this connection? (y/n): ").strip().lower()
             if remove == "y":
@@ -903,7 +889,7 @@ class LinkedOnApp:
                 print("  ✅  Connection removed.")
 
         elif conn.status == Connection.DECLINED:
-            # A previous request was declined — inform the user
+            # A previous request was declined. Inform the user
             print("  ❌  This connection request was previously declined.")
 
         self.__pause()
@@ -931,7 +917,7 @@ class LinkedOnApp:
         print(f"  You have {len(connected_users)} connection(s):\n")
         for i, u in enumerate(connected_users, 1):
             bio = u.bio if u.bio else "No headline"
-            print(f"  [{i}]  {u.name or u.email}  —  {bio}")
+            print(f"  [{i}]  {u.name or u.email}  -  {bio}")
 
         # Let the user select a connection to view their full profile
         print()
@@ -968,7 +954,7 @@ class LinkedOnApp:
             if sender:
                 senders.append((c, sender))
                 bio = sender.bio if sender.bio else "No headline"
-                print(f"  [{i}]  {sender.name or sender.email}  —  {bio}")
+                print(f"  [{i}]  {sender.name or sender.email}  -  {bio}")
 
         # Ask the user to select a request to respond to
         print()
@@ -1000,7 +986,6 @@ class LinkedOnApp:
             conn.decline()
             self.__save_database()
             print("\n  Request declined.")
-        # action == "3" or anything else — do nothing, request stays pending
 
         self.__pause()
 
