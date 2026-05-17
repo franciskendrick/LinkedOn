@@ -11,13 +11,15 @@
             "skills": [
                 "Programming in Python",
                 "Programming in Java",
-                "Programming in C++"
+                "Programming in C++",
+                "Programming in C"
             ],
             "experiences": [],
             "educations": [],
             "post_ids": [
                 "1",
-                "2"
+                "2",
+                "4"
             ]
         },
         "chris@gmail.com": {
@@ -90,6 +92,14 @@
             "content": "I enjoy being BCS11's President",
             "timestamp": "2026-05-15 11:10",
             "type": "text"
+        },
+        "4": {
+            "post_id": "4",
+            "author_id": "francis@gmail.com",
+            "author_name": "Francis Maddumba",
+            "content": "i want to be a banana",
+            "timestamp": "2026-05-17 11:15",
+            "type": "text"
         }
     },
     "connections": [
@@ -100,6 +110,11 @@
         },
         {
             "sender_id": "johnrhei@gmail.com",
+            "receiver_id": "francis@gmail.com",
+            "status": "pending"
+        },
+        {
+            "sender_id": "kyle@gmail.com",
             "receiver_id": "francis@gmail.com",
             "status": "pending"
         }

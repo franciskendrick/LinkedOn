@@ -139,8 +139,7 @@ class User(Entity):
     # =========================================================================
 
     def display(self):
-        W = 52
-        print("  " + "═" * W)
+        print("  " + "═" * 52)
         name_display = self._name if self._name else "(No name set)"
         print(f"  👤  {name_display}")
         if self._bio:
@@ -168,7 +167,7 @@ class User(Entity):
             for edu in self._educations:
                 edu.display()
 
-        print("  " + "═" * W)
+        print("  " + "═" * 52)
 
     def to_dict(self):
         return {

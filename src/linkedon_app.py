@@ -28,32 +28,50 @@ class LinkedOnApp:
     # =========================================================================
 
     def __load_database(self):
-        if not os.path.exists(DB_PATH):
-            return
-        # If the file exists but is empty or corrupted, start fresh.
-        try:
-            with open(DB_PATH, "r") as f:
-                data = json.load(f)
-            self.__users = {
-                uid: User.from_dict(u)
-                for uid, u in data.get("users", {}).items()
-            }
-            self.__posts = {
-                pid: Post.from_dict(p)
-                for pid, p in data.get("posts", {}).items()
-            }
-            self.__connections = [
-                Connection.from_dict(c) for c in data.get("connections", [])
-            ]
-        except (json.JSONDecodeError, KeyError):
-            print("  ⚠️  Database file is corrupted. Starting fresh.")
+        # Open and load the raw JSON data
+        with open(DB_PATH, "r") as f:
+            data = json.load(f)
+            
+        # Extract raw data components using .get()
+        raw_users = data.get("users", {})
+        raw_posts = data.get("posts", {})
+        raw_connections = data.get("connections", [])
+
+        # Process Data
+        self.__users = {}
+        for uid, u in raw_users.items():
+            self.__users[uid] = User.from_dict(u)
+
+        self.__posts = {}
+        for pid, p in raw_posts.items():
+            self.__posts[pid] = Post.from_dict(p)
+
+        self.__connections = []
+        for c in raw_connections:
+            self.__connections.append(Connection.from_dict(c))
 
     def __save_database(self):
+        # Initialize empty containers
+        users_dict = {}
+        posts_dict = {}
+        connections_list = []
+
+        # Populate dictionaries
+        for uid, u in self.__users.items():  # populate users
+            users_dict[uid] = u.to_dict()
+        for pid, p in self.__posts.items():  # populate posts
+            posts_dict[pid] = p.to_dict()
+        for c in self.__connections:  # populate connections
+            connections_list.append(c.to_dict())
+
+        # Assemble final data structure
         data = {
-            "users": {uid: u.to_dict() for uid, u in self.__users.items()},
-            "posts": {pid: p.to_dict() for pid, p in self.__posts.items()},
-            "connections": [c.to_dict() for c in self.__connections],
+            "users": users_dict,
+            "posts": posts_dict,
+            "connections": connections_list,
         }
+
+        # Dump Data Dictionary to JSON file 
         with open(DB_PATH, "w") as f:
             json.dump(data, f, indent=4)
 
