@@ -117,23 +117,20 @@ class LinkedOnApp:
         return any(u.email == email for u in self.__users.values())
 
     def __is_valid_email(self, email):
-        """
-        Validates email domain using native string methods without regular expressions.
-        """
         email_lower = email.lower()
         allowed_domains = ("@gmail.com", "@yahoo.com", "@outlook.com", "@edu.ph")
 
-        # 1. Enforce allowed domains at the end
+        # Enforce allowed domains at the end
         if not email_lower.endswith(allowed_domains):
             print("  ⚠️   Registration restricted to approved domains (Gmail, Yahoo, Outlook, or .edu.ph).")
             return False
 
-        # 2. Basic structural sanity check (No spaces allowed)
+        # Basic structural sanity check (No spaces allowed)
         if " " in email_lower:
             print("  ⚠️   Email cannot contain spaces.")
             return False
 
-        # 3. Ensure there is substantial content before the domain
+        # Ensure there is substantial content before the domain
         # Find which domain matched to calculate prefix length
         for domain in allowed_domains:
             if email_lower.endswith(domain):
