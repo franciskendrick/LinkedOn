@@ -46,7 +46,15 @@
             "location": "Dagat ng Kawit",
             "bio": "I really love video games",
             "skills": [],
-            "experiences": [],
+            "experiences": [
+                {
+                    "company": "DLSUD",
+                    "role": "CS Professor",
+                    "start_date": "Jan 2022",
+                    "end_date": "May 2026",
+                    "is_current": false
+                }
+            ],
             "educations": [],
             "post_ids": []
         },

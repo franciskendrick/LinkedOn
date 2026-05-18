@@ -116,6 +116,35 @@ class LinkedOnApp:
     def __email_taken(self, email):
         return any(u.email == email for u in self.__users.values())
 
+    def __is_valid_email(self, email):
+        """
+        Validates email domain using native string methods without regular expressions.
+        """
+        email_lower = email.lower()
+        allowed_domains = ("@gmail.com", "@yahoo.com", "@outlook.com", "@edu.ph")
+
+        # 1. Enforce allowed domains at the end
+        if not email_lower.endswith(allowed_domains):
+            print("  ⚠️   Registration restricted to approved domains (Gmail, Yahoo, Outlook, or .edu.ph).")
+            return False
+
+        # 2. Basic structural sanity check (No spaces allowed)
+        if " " in email_lower:
+            print("  ⚠️   Email cannot contain spaces.")
+            return False
+
+        # 3. Ensure there is substantial content before the domain
+        # Find which domain matched to calculate prefix length
+        for domain in allowed_domains:
+            if email_lower.endswith(domain):
+                prefix = email_lower[:-len(domain)]
+                if not prefix:
+                    print("  ⚠️   Email username cannot be empty.")
+                    return False
+                break
+
+        return True
+
     def __find_by_email(self, email):
         for u in self.__users.values():
             if u.email == email:
@@ -188,15 +217,21 @@ class LinkedOnApp:
         # Header
         self.__header("CREATE AN ACCOUNT")
 
-        # Email (Only check if it's already taken)
+        # Email Validation Loop
         while True:
             email = self.__prompt("Email")
+            
+            # Syntactic and domain validation
+            if not self.__is_valid_email(email):
+                continue
+                
+            # Uniqueness validation
             if self.__email_taken(email):
                 print("  ⚠️   That email is already registered.")
                 continue
             break
 
-        # Password
+        # Password Validation Loop
         while True:
             password = self.__prompt("Password (min. 8 characters)")
             if len(password) < 8:
@@ -215,7 +250,7 @@ class LinkedOnApp:
 
         # Confirmation message
         print()
-        print("  ✅  Account created successfully!")
+        print("  ✅   Account created successfully!")
         print("  Tip: Log in and complete your profile to get started.")
         self.__pause()
 
