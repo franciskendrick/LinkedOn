@@ -70,6 +70,32 @@
             "experiences": [],
             "educations": [],
             "post_ids": []
+        },
+        "leicester@gmail.com": {
+            "user_id": "leicester@gmail.com",
+            "email": "leicester@gmail.com",
+            "password": "qwertyuiop",
+            "name": "",
+            "age": null,
+            "location": "",
+            "bio": "",
+            "skills": [],
+            "experiences": [],
+            "educations": [],
+            "post_ids": []
+        },
+        "iggy@gmail.com": {
+            "user_id": "iggy@gmail.com",
+            "email": "iggy@gmail.com",
+            "password": "qwertyuiop",
+            "name": "",
+            "age": null,
+            "location": "",
+            "bio": "",
+            "skills": [],
+            "experiences": [],
+            "educations": [],
+            "post_ids": []
         }
     },
     "posts": {

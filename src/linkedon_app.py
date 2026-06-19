@@ -1,5 +1,6 @@
 import json
 import os
+from pwinput import pwinput
 
 from user import User
 from experience import Experience
@@ -106,10 +107,18 @@ class LinkedOnApp:
         print()
 
     def __prompt(self, label, allow_empty=False):
-        # Get non-empty input from the user.
+        # Get non-empty input from the user
         while True:
             val = input(f"  {label}: ").strip()
             if val or allow_empty:
+                return val
+            print("  ⚠️   This field cannot be empty. Please try again.")
+
+    def __prompt_password(self, label):
+        # Get non-empty password input from the user
+        while True:
+            val = pwinput(prompt=f"  {label}: ", mask="*").strip()
+            if val:
                 return val
             print("  ⚠️   This field cannot be empty. Please try again.")
 
@@ -230,11 +239,11 @@ class LinkedOnApp:
 
         # Password Validation Loop
         while True:
-            password = self.__prompt("Password (min. 8 characters)")
+            password = self.__prompt_password("Password (min. 8 characters)")
             if len(password) < 8:
                 print("  ⚠️   Password must be at least 8 characters long.")
                 continue
-            confirm = self.__prompt("Confirm Password")
+            confirm = self.__prompt_password("Confirm Password")
             if password != confirm:
                 print("  ⚠️   Passwords do not match. Please try again.")
                 continue
@@ -255,7 +264,7 @@ class LinkedOnApp:
         # Header
         self.__header("LOG IN")
         email = self.__prompt("Email")
-        password = self.__prompt("Password")
+        password = self.__prompt_password("Password")
 
         # Find email
         user = self.__find_by_email(email)
@@ -691,7 +700,7 @@ class LinkedOnApp:
         self.__header("CHANGE PASSWORD")
 
         # Verify the user knows their current password before allowing a change
-        old = self.__prompt("Current password")
+        old = self.__prompt_password("Current password")
         if not self.__current_user.verify_password(old):
             print("\n  ❌  Incorrect current password.")
             self.__pause()
@@ -699,11 +708,11 @@ class LinkedOnApp:
 
         # Collect and validate the new password
         while True:
-            new_pass = self.__prompt("New password (min. 8 characters)")
+            new_pass = self.__prompt_password("New password (min. 8 characters)")
             if len(new_pass) < 8:
                 print("  ⚠️   Must be at least 8 characters.")
                 continue
-            confirm = self.__prompt("Confirm new password")
+            confirm = self.__prompt_password("Confirm new password")
             if new_pass != confirm:  # error validation
                 print("  ⚠️   Passwords do not match.")
                 continue
