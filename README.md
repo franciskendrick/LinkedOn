@@ -4,6 +4,8 @@
 
 **LinkedOn** is a simple, terminal-based social network built in Python. It is a direct copy of [LinkedIn](https://www.linkedin.com/in/francis-kendrick-maddumba-27288b402/), simulating key features of professional networking platforms, including the features to build profiles, add education and work experience, send connection requests, and create posts.
 
+![Title screen of LinkedOn](title_screen.png)
+
 ## Context
 
 This project was created as the **Final Project for Object-Oriented Programming (OOP)** at [De La Salle University - Dasmariñas](https://www.dlsud.edu.ph/).
